@@ -51,7 +51,7 @@ describe("buildBrief", () => {
   it("only includes changes inside the comparison window", () => {
     expect(brief.workCompleted!.map((i) => i.ref.id)).toEqual(["w1"]);
     expect(brief.milestonesReached!.map((i) => i.ref.id)).toEqual(["m1"]);
-    expect(brief.statusChanges![0]!.title).toBe("Gateway: IN_PROGRESS → BLOCKED");
+    expect(brief.statusChanges![0]!.title).toBe("Gateway: In progress → Blocked");
   });
 
   it("separates new, unresolved and resolved blockers", () => {

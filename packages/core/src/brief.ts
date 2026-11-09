@@ -7,6 +7,7 @@
  *
  * Complexity: linear in the number of input records.
  */
+import { label } from "./enums";
 
 export interface BriefRef {
   type: "project" | "milestone" | "workItem" | "blocker" | "update" | "decision" | "actionItem" | "member";
@@ -149,7 +150,7 @@ export function buildBrief(input: BriefInput): BriefSection[] {
   const statusChanges: BriefItem[] = input.changes
     .filter((c) => c.entityType === "PROJECT" && (c.field === "status" || c.field === "leadId") && inWindow(c.at))
     .map((c) => ({
-      title: c.field === "status" ? `${c.title}: ${c.from ?? "—"} → ${c.to ?? "—"}` : `${c.title}: lead changed`,
+      title: c.field === "status" ? `${c.title}: ${label(c.from) || "—"} → ${label(c.to) || "—"}` : `${c.title}: lead changed`,
       detail: c.field === "leadId" ? `${c.from ?? "—"} → ${c.to ?? "—"}` : undefined,
       at: iso(c.at),
       ref: { type: "project", id: c.entityId },
