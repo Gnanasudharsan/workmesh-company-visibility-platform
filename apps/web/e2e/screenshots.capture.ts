@@ -40,7 +40,7 @@ test("employee workspace", async ({ page }) => {
 test("manager workspace", async ({ page }) => {
   await login(page, USERS.daniel);
   await page.goto("/team-pulse");
-  await expect(page.getByRole("heading", { name: "Team Pulse" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Your Team, At a Glance" })).toBeVisible();
   await shot(page, "03-manager-team-pulse");
   await page.goto("/blockers?scope=queue");
   await shot(page, "11-blocker-queue");
@@ -69,6 +69,12 @@ test("company map", async ({ page }) => {
   await expect(page.locator(".react-flow__node-person", { hasText: "Maya Chen" })).toBeVisible();
   await page.waitForTimeout(800);
   await shot(page, "05-company-map-people");
+  await page.getByRole("button", { name: "Close details" }).click();
+  // The camera may have glided so the node sits outside the viewport; dispatch the click directly.
+  await page.locator(".react-flow__node-person", { hasText: "Maya Chen" }).dispatchEvent("click");
+  await expect(page.getByRole("complementary", { name: /person details/i })).toBeVisible();
+  await page.waitForTimeout(700);
+  await shot(page, "23-company-map-inspector");
   await page.goto("/map?mode=work");
   await expect(page.locator(".react-flow__node-project", { hasText: "Checkout Launch" })).toBeVisible();
   await page.waitForTimeout(800);
@@ -89,6 +95,9 @@ test("teams, roadmap, projects, dependencies", async ({ page }) => {
   await page.goto(`/dependencies?projectId=${projects.body.find((p) => p.key === "PGW")!.id}`);
   await page.waitForTimeout(800);
   await shot(page, "13-dependency-explorer");
+  await page.goto(`/dependencies?projectId=${projects.body.find((p) => p.key === "PGW")!.id}&mode=impact`);
+  await page.waitForTimeout(800);
+  await shot(page, "24-dependency-impact-mode");
 });
 
 test("administration", async ({ page }) => {
