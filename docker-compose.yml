@@ -1,0 +1,51 @@
+name: ${COMPOSE_PROJECT_NAME:-workmesh}
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: workmesh_owner
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me-local-owner}
+      POSTGRES_DB: workmesh
+      WORKMESH_APP_DB_PASSWORD: ${WORKMESH_APP_DB_PASSWORD:-change-me-local-app}
+    ports:
+      - "127.0.0.1:${WORKMESH_PG_PORT:-55462}:5432"
+    volumes:
+      - workmesh_pgdata:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U workmesh_owner -d workmesh"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "128mb", "--maxmemory-policy", "noeviction"]
+    ports:
+      - "127.0.0.1:${WORKMESH_REDIS_PORT:-56402}:6379"
+    volumes:
+      - workmesh_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    deploy:
+      resources:
+        limits:
+          memory: 192m
+
+volumes:
+  workmesh_pgdata:
+  workmesh_redisdata:
+
+networks:
+  default:
+    name: workmesh_net

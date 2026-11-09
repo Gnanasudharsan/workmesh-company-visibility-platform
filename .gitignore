@@ -1,0 +1,32 @@
+node_modules/
+dist/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+.turbo/
+
+# environment & secrets
+.env
+.env.*
+!.env.example
+.demo-credentials.json
+*.pem
+*.key
+
+# test output
+playwright-report/
+test-results/
+apps/web/e2e/.auth/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.claude/settings.local.json
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
