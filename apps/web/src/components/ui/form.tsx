@@ -47,7 +47,7 @@ export function Field({ label, htmlFor, hint, error, children, required, classNa
 
 export function Segmented<T extends string>({ value, onChange, options, label }: { value: T; onChange: (v: T) => void; options: Array<{ value: T; label: ReactNode; icon?: ReactNode }>; label: string }) {
   return (
-    <div role="radiogroup" aria-label={label} className="inline-flex rounded-lg border border-line bg-subtle/70 p-0.5">
+    <div role="radiogroup" aria-label={label} className="inline-flex max-w-full overflow-x-auto rounded-lg border border-line bg-subtle/70 p-0.5">
       {options.map((o) => (
         <button
           key={o.value}
@@ -56,7 +56,7 @@ export function Segmented<T extends string>({ value, onChange, options, label }:
           aria-checked={value === o.value}
           onClick={() => onChange(o.value)}
           className={cn(
-            "flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[12.5px] font-medium transition-all",
+            "flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1 text-[12.5px] font-medium transition-all",
             value === o.value ? "bg-surface text-ink shadow-card" : "text-muted hover:text-ink",
           )}
         >

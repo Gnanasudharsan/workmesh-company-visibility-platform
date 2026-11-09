@@ -5,7 +5,7 @@
 | Domain core | `packages/core/src/*.test.ts` | Vitest | 91 |
 | API integration (real Postgres + Redis) | `apps/api/test/*.int.spec.ts` | Jest, Supertest, socket.io-client | 53 |
 | Web components & client | `apps/web/src/**/*.test.tsx` | Vitest, Testing Library, jsdom | 16 |
-| End-to-end journeys | `apps/web/e2e/journeys.spec.ts` | Playwright (Chromium) | 7 |
+| End-to-end journeys + responsive/a11y checks | `apps/web/e2e/*.spec.ts` | Playwright (Chromium) | 9 |
 
 ## Running
 
@@ -37,7 +37,7 @@ pnpm --filter @workmesh/api loadtest   # latency measurement against a running A
 
 ## Results (2026-11-09, local)
 
-Core 91/91 · API 53/53 · Web 16/16 · Playwright 7/7. CI runs the same suites on every push (see the README badge for the current status).
+Core 91/91 · API 53/53 · Web 16/16 · Playwright 9/9. CI runs the same suites on every push (see the README badge for the current status).
 
 ## Bugs found by tests
 

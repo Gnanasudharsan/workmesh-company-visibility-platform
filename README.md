@@ -164,7 +164,7 @@ Sign in at http://localhost:3002/login. With `DEMO_MODE=true` (local only — th
 | Domain core: policy matrix, hierarchy & DAG algorithms, state machines, health, briefs, dedupe | Vitest | 91 | ✅ 91 passed |
 | API integration on real Postgres + Redis: tenancy & RLS (10), authorization matrix (27), workflows/journeys (13), realtime sockets (3) | Jest + Supertest + socket.io-client | 53 | ✅ 53 passed |
 | Web components & client | Vitest + Testing Library | 16 | ✅ 16 passed |
-| Critical journeys A–G against the full stack | Playwright | 7 | ✅ 7 passed |
+| Critical journeys A–G + responsive (no overflow on 10 pages at 1920/1440/1280/768/390 px) and keyboard/mobile-nav checks | Playwright | 9 | ✅ 9 passed |
 
 Measured API latency (300 requests/endpoint, concurrency 10, seeded Northstar data of 51 people / 12 projects / 98 work items; MacBook Apple Silicon 10-core 16 GB, API in dev mode with pretty logging, Postgres & Redis in Docker):
 
