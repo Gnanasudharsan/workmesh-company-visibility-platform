@@ -47,7 +47,7 @@ const PROJECTS: ProjectDef[] = [
   },
   {
     key: "SBX", name: "Sandbox Credentials & Vault", summary: "Provision sandbox credentials for third-party integrations through the secrets vault.", team: "platform", lead: "hannah",
-    members: ["ethan", "tariq"], initiative: "paymod", status: "BLOCKED", priority: "HIGH", visibility: "TEAM", discoverable: true, start: -25, target: 5,
+    members: ["ethan", "tariq", "daniel"], initiative: "paymod", status: "BLOCKED", priority: "HIGH", visibility: "TEAM", discoverable: true, start: -25, target: 5,
     milestones: [["Vault namespace per environment", -12, "DONE", false, "ethan"], ["Processor sandbox credentials issued", 2, "IN_PROGRESS", true, "hannah"]],
     items: [["Vault namespaces for sandbox", "ethan", "DONE", 0, 13], ["Rotation policy for sandbox secrets", "tariq", "DONE", 0, 10], ["Request sandbox account from processor", "hannah", "BLOCKED", 1], ["Credential injection into CI", "ethan", "IN_PROGRESS", 1], ["Access review for sandbox secrets", "tariq", "TODO", 1]],
   },
