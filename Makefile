@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PNPM := corepack pnpm
 COMPOSE := docker compose --env-file .env
 
-.PHONY: help setup env install up down dev seed migrate test test-core test-api test-web lint typecheck build e2e screenshots demo clean-db logs
+.PHONY: docs-check loadtest help setup env install up down dev seed migrate test test-core test-api test-web lint typecheck build e2e screenshots demo clean-db logs
 
 help: ## List available commands
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
@@ -71,3 +71,9 @@ demo: setup ## Set up everything and start the app with demo data
 
 clean-db: ## Drop and recreate the local database (destroys local data)
 	$(PNPM) --filter @workmesh/api exec prisma migrate reset --force --skip-seed
+
+docs-check: ## Validate every Mermaid diagram in README.md and docs/
+	node scripts/validate-mermaid.mjs
+
+loadtest: ## Measure API latency against a running, seeded API
+	$(PNPM) --filter @workmesh/api run loadtest

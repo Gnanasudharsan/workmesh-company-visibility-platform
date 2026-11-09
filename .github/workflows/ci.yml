@@ -146,6 +146,8 @@ jobs:
       - run: pnpm --filter @workmesh/api build
       - run: pnpm --filter @workmesh/web build
       - run: pnpm --filter @workmesh/web exec playwright install --with-deps chromium
+      - name: Validate Mermaid diagrams in README and docs
+        run: node scripts/validate-mermaid.mjs
       - name: Run journeys A-G
         run: pnpm --filter @workmesh/web e2e
       - uses: actions/upload-artifact@v4

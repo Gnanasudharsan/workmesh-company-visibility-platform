@@ -27,11 +27,25 @@ Only verified work is recorded here. Each milestone lists what was run and the r
 | 9 | Integration tests: tenancy (10), authorization (27), workflows (12), realtime (3) | **52/52 passing** against real Postgres + Redis | `9587b4e`, `4e55396`, `1e3bae4` |
 | 10 | Realtime bug fix found by tests (Redis subscribe before ready) | realtime suite 3/3 | `e48b000` |
 
+| 11 | CI hang fix: BullMQ worker connection closed on shutdown | full API suite exits on its own (52/52 in ~8 s) | `c452cae` |
+| 12 | Web app: shell, auth flows, all workspaces, Company Map, roadmaps, projects, updates, blockers, dependencies, meetings, directory, notifications, search, settings, onboarding, admin | `tsc`, ESLint, `next build` (44 routes), manual browser checks | `b74749d` … `970e2a1` |
+| 13 | Web unit tests | 16/16 (Vitest) | `18d5558` |
+| 14 | Playwright journeys A–G against the full stack | **7/7 passing** | `8b731fd` |
+| 15 | Mobile overflow fix, brief polish | screenshots at 390 px re-inspected | `3d24f68` |
+| 16 | Dockerfiles; CI web/E2E/Docker jobs | both images build locally | `433b747` |
+| 17 | 17 real screenshots | Playwright capture, inspected | `4aa944b` |
+| 18 | Security review: CSV formula injection fixed | +1 integration test (53/53) | `e0f84ca` |
+| 19 | Load test with measured latencies | see README (zero errors; RSS returns to ~79 MB idle) | `4e2fb8b` |
+| 20 | README + 14 docs; Mermaid validated in Chromium (6/6) and added to CI | `make docs-check` | (this commit) |
+
 ## Known issues / notes
 
 - Integration suites share one test database and must run serially (`--runInBand`, already the default script).
 - `pnpm audit --prod`: 9 high advisories (multer, path-to-regexp via Nest; deepmerge-ts via Prisma) fixed by moving Nest to 11.2.8 and pnpm overrides; audit now clean.
 
+- E2E reseeds the local demo tenants (synthetic data only).
+- Known limitations are listed in the README.
+
 ## Next
 
-Frontend (Next.js workspaces, Company Map), Playwright journeys, screenshots, docs.
+See README "Future roadmap".

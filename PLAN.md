@@ -28,52 +28,52 @@ Key decisions (see `docs/DECISIONS.md`):
 ## Checklist
 
 ### Phase 1 — Foundation
-- [ ] Environment inspection, GitHub identity, attribution disabled
-- [ ] Monorepo (pnpm workspaces), TypeScript strict, ESLint, test runners
-- [ ] Docker Compose (Postgres + Redis, isolated names/ports)
-- [ ] Health checks that verify DB + Redis + queue
+- [x] Environment inspection, GitHub identity, attribution disabled
+- [x] Monorepo (pnpm workspaces), TypeScript strict, ESLint, test runners
+- [x] Docker Compose (Postgres + Redis, isolated names/ports)
+- [x] Health checks that verify DB + Redis + queue
 
 ### Phase 2 — Database & authentication
-- [ ] Prisma schema + migrations + RLS policies
-- [ ] Argon2id passwords, HTTP-only sessions, CSRF double-submit, rate limits
-- [ ] Company registration, invitations (expiry, single-use, resend, revoke), onboarding
-- [ ] Password reset via local mailbox
+- [x] Prisma schema + migrations + RLS policies
+- [x] Argon2id passwords, HTTP-only sessions, CSRF double-submit, rate limits
+- [x] Company registration, invitations (expiry, single-use, resend, revoke), onboarding
+- [x] Password reset via local mailbox
 
 ### Phase 3 — Organization graph
-- [ ] Departments, teams, team memberships, positions, profiles
-- [ ] Reporting lines with history, cycle detection, delegation with expiry
+- [x] Departments, teams, team memberships, positions, profiles
+- [x] Reporting lines with history, cycle detection, delegation with expiry
 
 ### Phase 4 — Authorization
-- [ ] Policy engine + capability API
-- [ ] Authorization matrix tests (pure) + API-level enforcement tests
-- [ ] Cross-tenant isolation tests (IDs, search, graph, export, sockets)
+- [x] Policy engine + capability API
+- [x] Authorization matrix tests (pure) + API-level enforcement tests
+- [x] Cross-tenant isolation tests (IDs, search, graph, export, sockets)
 
 ### Phase 5 — Company Map
-- [ ] People graph API (progressive expansion) + Work graph API, permission-filtered
-- [ ] React Flow map: custom nodes, ELK layouts, search, highlight, filters, history, minimap, list view
+- [x] People graph API (progressive expansion) + Work graph API, permission-filtered
+- [x] React Flow map: custom nodes, ELK layouts, search, highlight, filters, history, minimap, list view
 
 ### Phase 6 — Goals & roadmaps
-- [ ] Goals → initiatives → projects → milestones → work items
-- [ ] Validated status transitions, optimistic concurrency
-- [ ] Timeline, kanban, list, milestone tracker, goal hierarchy views
+- [x] Goals → initiatives → projects → milestones → work items
+- [x] Validated status transitions, optimistic concurrency
+- [x] Timeline, kanban, list, milestone tracker, goal hierarchy views
 
 ### Phase 7 — Progress updates & blockers
-- [ ] Quick/detailed composer, drafts, publish, edit history, acknowledgements, comments
-- [ ] Blocker lifecycle with full transition history
+- [x] Quick/detailed composer, drafts, publish, edit history, acknowledgements, comments
+- [x] Blocker lifecycle with full transition history
 
 ### Phase 8 — Role-aware workspaces
-- [ ] Employee, Manager (Team Pulse), Project Lead, Leadership, Admin
+- [x] Employee, Manager (Team Pulse), Project Lead, Leadership, Admin
 
 ### Phase 9 — Dependencies
-- [ ] Dependency CRUD, cycle prevention, downstream impact, explorer
+- [x] Dependency CRUD, cycle prevention, downstream impact, explorer
 
 ### Phase 10 — Meetings
-- [ ] Meetings, agenda, change-based briefs, decisions, action items, Markdown/PDF export
+- [x] Meetings, agenda, change-based briefs, decisions, action items, Markdown/PDF export
 
 ### Phase 11 — Collaboration
-- [ ] Notifications (prefs, dedupe, deep links), realtime, global search (FTS)
+- [x] Notifications (prefs, dedupe, deep links), realtime, global search (FTS)
 
 ### Phase 12–14 — Polish, verification, delivery
-- [ ] Accessibility, responsive layouts, empty/error states
-- [ ] Playwright journeys A–G, screenshots
-- [ ] Docs, README, CI, secret scanning, publication
+- [x] Accessibility, responsive layouts, empty/error states
+- [x] Playwright journeys A–G, screenshots
+- [x] Docs, README, CI, secret scanning, publication

@@ -1,7 +1,7 @@
 {
   "name": "workmesh",
   "private": true,
-  "description": "WorkMesh \u2014 Know who's building what. Understand how it all connects.",
+  "description": "WorkMesh — Know who's building what. Understand how it all connects.",
   "packageManager": "pnpm@10.34.9",
   "engines": {
     "node": ">=22"
@@ -14,6 +14,7 @@
     "format": "prettier --write ."
   },
   "devDependencies": {
+    "mermaid": "^11.17.2",
     "prettier": "^3.6.2"
   },
   "pnpm": {
