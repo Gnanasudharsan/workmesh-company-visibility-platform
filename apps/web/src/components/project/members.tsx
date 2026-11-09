@@ -103,7 +103,7 @@ export function DependenciesTab({ p }: { p: ProjectDetail }) {
   const Row = ({ e, dir }: { e: Explorer["edges"][number]; dir: "up" | "down" }) => {
     const other = name.get(dir === "up" ? e.upstreamId : e.downstreamId);
     return (
-      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-line px-3 py-2.5">
+      <div role="group" aria-label={`${dir === "up" ? "Depends on" : "Waited on by"} ${other?.name ?? "project"}`} className="flex flex-wrap items-center gap-3 rounded-lg border border-line px-3 py-2.5">
         {dir === "up" ? <ArrowUpRight className="h-4 w-4 text-muted" aria-hidden /> : <ArrowDownRight className="h-4 w-4 text-muted" aria-hidden />}
         <div className="min-w-0 flex-1">
           <Link href={`/projects/${other?.id}`} className="text-[13.5px] font-medium hover:text-brand-deep">{other?.name}</Link>
