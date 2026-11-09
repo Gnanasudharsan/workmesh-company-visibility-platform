@@ -1,7 +1,11 @@
-import { forwardRef, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
+"use client";
+
+import { motion } from "motion/react";
+import { forwardRef, useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
+import { SPRING } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
-const control = "w-full rounded-lg border border-line bg-surface px-3 text-[13.5px] text-ink shadow-[inset_0_1px_1px_rgba(15,23,42,0.03)] placeholder:text-faint transition-[border,box-shadow] focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-teal-soft disabled:bg-subtle disabled:text-muted aria-[invalid=true]:border-danger";
+const control = "w-full rounded-[var(--radius-control)] border border-line bg-surface px-3 text-[13.5px] text-ink shadow-[inset_0_1px_1px_rgba(15,23,42,0.03)] placeholder:text-faint transition-[border,box-shadow] focus:border-teal-ink focus:outline-none focus:ring-[3px] focus:ring-teal-soft disabled:bg-subtle disabled:text-muted aria-[invalid=true]:border-danger";
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(({ className, ...props }, ref) => <input ref={ref} className={cn(control, "h-9", className)} {...props} />);
 Input.displayName = "Input";
@@ -46,6 +50,7 @@ export function Field({ label, htmlFor, hint, error, children, required, classNa
 }
 
 export function Segmented<T extends string>({ value, onChange, options, label }: { value: T; onChange: (v: T) => void; options: Array<{ value: T; label: ReactNode; icon?: ReactNode }>; label: string }) {
+  const id = useId();
   return (
     <div role="radiogroup" aria-label={label} className="inline-flex max-w-full overflow-x-auto rounded-lg border border-line bg-subtle/70 p-0.5">
       {options.map((o) => (
@@ -56,12 +61,15 @@ export function Segmented<T extends string>({ value, onChange, options, label }:
           aria-checked={value === o.value}
           onClick={() => onChange(o.value)}
           className={cn(
-            "flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1 text-[12.5px] font-medium transition-all",
-            value === o.value ? "bg-surface text-ink shadow-card" : "text-muted hover:text-ink",
+            "relative flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1 text-[12.5px] font-medium transition-colors",
+            value === o.value ? "text-ink" : "text-muted hover:text-ink",
           )}
         >
-          {o.icon}
-          {o.label}
+          {value === o.value && <motion.span layoutId={`seg-${id}`} transition={SPRING.snappy} className="absolute inset-0 rounded-md bg-surface shadow-card ring-1 ring-line/60" aria-hidden />}
+          <span className="relative flex items-center gap-1.5">
+            {o.icon}
+            {o.label}
+          </span>
         </button>
       ))}
     </div>

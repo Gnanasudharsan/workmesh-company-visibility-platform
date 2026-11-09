@@ -5,7 +5,9 @@ import * as Menu from "@radix-ui/react-dropdown-menu";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { X } from "lucide-react";
-import type { ReactNode } from "react";
+import { motion } from "motion/react";
+import { useId, type ReactNode } from "react";
+import { SPRING } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 /* ---------------------------------- Dialog --------------------------------- */
@@ -96,6 +98,7 @@ export const DropdownSeparator = () => <Menu.Separator className="my-1 h-px bg-l
 /* ----------------------------------- Tabs ---------------------------------- */
 
 export function Tabs({ value, onValueChange, tabs, children, className }: { value: string; onValueChange: (v: string) => void; tabs: Array<{ value: string; label: ReactNode; count?: number }>; children: ReactNode; className?: string }) {
+  const id = useId();
   return (
     <TabsPrimitive.Root value={value} onValueChange={onValueChange} className={className}>
       <TabsPrimitive.List className="mb-4 flex gap-1 overflow-x-auto border-b border-line" aria-label="Sections">
@@ -103,8 +106,9 @@ export function Tabs({ value, onValueChange, tabs, children, className }: { valu
           <TabsPrimitive.Trigger
             key={t.value}
             value={t.value}
-            className="relative -mb-px flex shrink-0 items-center gap-1.5 border-b-2 border-transparent px-3 pb-2.5 pt-1 text-[13px] font-medium text-muted transition-colors hover:text-ink data-[state=active]:border-brand data-[state=active]:text-ink"
+            className="relative -mb-px flex shrink-0 items-center gap-1.5 px-3 pb-2.5 pt-1 text-[13px] font-medium text-muted transition-colors hover:text-ink data-[state=active]:text-ink"
           >
+            {value === t.value && <motion.span layoutId={`tab-${id}`} transition={SPRING.snappy} className="absolute inset-x-1.5 -bottom-px h-[2px] rounded-full bg-teal-ink" aria-hidden />}
             {t.label}
             {t.count !== undefined && <span className="rounded-full bg-subtle px-1.5 text-[11px] tabular-nums text-muted">{t.count}</span>}
           </TabsPrimitive.Trigger>
