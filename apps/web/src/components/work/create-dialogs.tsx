@@ -41,7 +41,7 @@ function BlockerDialog({ open, onClose, projectId }: { open: boolean; onClose: (
           <Input id="b-title" placeholder="e.g. Sandbox credentials not provided" {...register("title", { required: true, minLength: 3 })} autoFocus />
         </Field>
         <Field label="Details" htmlFor="b-desc"><Textarea id="b-desc" rows={3} {...register("description")} /></Field>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Project" htmlFor="b-project"><ProjectSelect id="b-project" {...register("projectId")} /></Field>
           <Field label="Severity" htmlFor="b-sev">
             <Select id="b-sev" {...register("severity")}>{["LOW", "MEDIUM", "HIGH", "CRITICAL"].map((s) => <option key={s} value={s}>{label(s)}</option>)}</Select>
@@ -74,7 +74,7 @@ function ProjectDialog({ open, onClose, initiativeId }: { open: boolean; onClose
       <form className="space-y-3" onSubmit={handleSubmit((v) => create.mutate(v))}>
         <Field label="Name" htmlFor="p-name" required error={formState.errors.name && "Name is required"}><Input id="p-name" {...register("name", { required: true, minLength: 2 })} autoFocus /></Field>
         <Field label="One-line summary" htmlFor="p-sum" hint="Shown to people who can only see the project's summary."><Input id="p-sum" {...register("summary")} /></Field>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Supports initiative" htmlFor="p-init">
             <Select id="p-init" {...register("initiativeId")}>
               <option value="">Not aligned yet</option>
@@ -125,7 +125,7 @@ function MeetingDialog({ open, onClose }: { open: boolean; onClose: () => void }
   );
   return (
     <Dialog size="lg" open={open} onOpenChange={(o) => !o && onClose()} title="Schedule a meeting" description="WorkMesh prepares a brief from what changed since the last one. Nothing is recorded or transcribed." footer={<><Button variant="ghost" onClick={onClose}>Cancel</Button><Button variant="primary" loading={create.isPending} onClick={handleSubmit((v) => create.mutate(v))}>Schedule</Button></>}>
-      <form className="grid gap-3 sm:grid-cols-2" onSubmit={handleSubmit((v) => create.mutate(v))}>
+      <form className="grid grid-cols-1 gap-3 sm:grid-cols-2" onSubmit={handleSubmit((v) => create.mutate(v))}>
         <Field className="sm:col-span-2" label="Title" htmlFor="m-title" required><Input id="m-title" {...register("title", { required: true })} placeholder="e.g. Payments weekly sync" autoFocus /></Field>
         <Field label="Date" htmlFor="m-date"><Input id="m-date" type="date" {...register("date", { required: true })} /></Field>
         <div className="grid grid-cols-2 gap-3">
@@ -168,7 +168,7 @@ function GoalDialog({ open, onClose, kind, goalId }: { open: boolean; onClose: (
       <form className="space-y-3" onSubmit={handleSubmit((v) => create.mutate(v))}>
         <Field label="Title" htmlFor="g-title" required><Input id="g-title" {...register("title", { required: true })} autoFocus /></Field>
         <Field label="Description" htmlFor="g-desc"><Textarea id="g-desc" {...register("description")} /></Field>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {kind === "initiative" ? (
             <Field label="Company goal" htmlFor="g-goal"><Select id="g-goal" {...register("goalId")}><option value="">None</option>{goals?.goals.map((g) => <option key={g.id} value={g.id}>{g.title}</option>)}</Select></Field>
           ) : (

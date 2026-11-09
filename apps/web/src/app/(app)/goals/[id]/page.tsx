@@ -49,7 +49,7 @@ export default function GoalPage() {
         <Stat label="Blocked" value={g.blocked} tone={g.blocked ? "danger" : "default"} />
         <Stat label="Target" value={<span className="text-[18px]">{day(g.targetDate, true)}</span>} />
       </div>
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="space-y-4">
           {g.initiatives.length === 0 && <Card><EmptyState title="No initiatives yet" /></Card>}
           {g.initiatives.map((i) => (

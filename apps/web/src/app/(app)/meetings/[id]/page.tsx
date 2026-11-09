@@ -98,7 +98,7 @@ function Agenda({ m }: { m: Meeting }) {
   const del = useAction((aid: string) => api.del(`/agenda/${aid}`), { invalidate: ["/meetings"] });
   const saveNotes = useAction(() => api.patch(`/meetings/${m.id}`, { notes: notes || null }), { success: "Notes saved", invalidate: ["/meetings"] });
   return (
-    <div className="grid gap-5 lg:grid-cols-2">
+    <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
       <Card>
         <CardHeader title="Agenda" description="Tick items off as you discuss them. Undiscussed items roll into the next occurrence." />
         <CardBody className="space-y-1">
@@ -133,7 +133,7 @@ function Decisions({ m }: { m: Meeting }) {
   const add = useAction(() => api.post(`/meetings/${m.id}/decisions`, { title: v.title, rationale: nn(v.rationale), ownerId: nn(v.ownerId), projectId: nn(v.projectId), status: v.status }), { success: "Decision recorded", invalidate: ["/meetings", "/decisions", "/dashboard"], onSuccess: () => setV({ title: "", rationale: "", ownerId: "", projectId: "", status: "DECIDED" }) });
   const decide = useAction((did: string) => api.patch(`/decisions/${did}`, { status: "DECIDED" }), { success: "Marked decided", invalidate: ["/meetings", "/decisions"] });
   return (
-    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
+    <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
       <Card>
         <CardBody className="space-y-3 pt-4">
           {m.decisions.length === 0 && <p className="text-[13px] text-muted">No decisions yet.</p>}
@@ -168,7 +168,7 @@ function Actions({ m }: { m: Meeting }) {
   const add = useAction(() => api.post(`/meetings/${m.id}/action-items`, { title: v.title, ownerId: v.ownerId, dueDate: isoDate(v.dueDate), decisionId: nn(v.decisionId), projectId: m.decisions.find((d) => d.id === v.decisionId)?.projectId ?? (m.projects[0]?.id ?? null) }), { success: "Action item assigned", invalidate: ["/meetings", "/action-items", "/dashboard"], onSuccess: () => setV({ title: "", ownerId: "", dueDate: "", decisionId: "" }) });
   const toggle = useAction((a: Meeting["actionItems"][number]) => api.patch(`/action-items/${a.id}`, { status: a.status === "DONE" ? "OPEN" : "DONE" }), { invalidate: ["/meetings", "/action-items"] });
   return (
-    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
+    <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
       <Card>
         <CardBody className="space-y-1 pt-4">
           {m.actionItems.length === 0 && <p className="text-[13px] text-muted">No action items yet.</p>}

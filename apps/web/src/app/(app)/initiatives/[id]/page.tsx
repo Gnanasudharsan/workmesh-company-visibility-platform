@@ -39,7 +39,7 @@ export default function InitiativePage() {
         description={i.description ?? undefined}
         actions={<><StatusBadge status={i.status} /><Button variant="primary" onClick={() => setCreating(true)}><FolderPlus className="h-4 w-4" /> New project</Button></>}
       />
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px]">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_280px]">
         <Card className="p-2">{i.projects.length ? i.projects.map((p) => <ProjectRow key={p.id} p={p} />) : <EmptyState title="No projects you can see yet" />}</Card>
         <Card><CardBody className="space-y-3 pt-4 text-[13px]"><div><p className="mb-1 text-[12px] text-muted">Owner</p><PersonChip person={i.owner} /></div><div><p className="mb-1 text-[12px] text-muted">Average computed progress</p><ProgressBar value={i.progress} /></div></CardBody></Card>
       </div>

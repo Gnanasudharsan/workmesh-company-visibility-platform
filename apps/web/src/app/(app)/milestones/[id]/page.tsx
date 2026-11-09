@@ -44,7 +44,7 @@ export default function MilestonePage() {
         description={m.description ?? undefined}
         actions={<><StatusBadge status={m.status} />{m.isCritical && <Badge tone="danger">Critical</Badge>}</>}
       />
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
         <Card>
           <CardHeader title="Work in this milestone" description={`${m.workItems.filter((w) => w.status === "DONE").length} of ${m.workItems.length} done`} />
           <CardBody className="px-2 pb-2">

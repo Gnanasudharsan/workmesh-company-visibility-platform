@@ -46,7 +46,7 @@ function DirectoryInner() {
         <>
           {tab === "people" && (
             filteredPeople.length === 0 ? <Card><EmptyState title="Nobody matches" /></Card> : (
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {filteredPeople.map((p) => (
                   <Link key={p.id} href={`/people/${p.id}`} className="flex items-center gap-3 rounded-xl border border-line bg-surface p-3.5 shadow-card transition-shadow hover:shadow-raised">
                     <Avatar name={p.name} hue={p.avatarHue} size="md" />
@@ -63,7 +63,7 @@ function DirectoryInner() {
           )}
           {tab === "teams" && (
             filteredTeams.length === 0 ? <Card><EmptyState title="No teams match" description="Try a different responsibility." /></Card> : (
-              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {filteredTeams.map((t) => (
                   <Link key={t.id} href={`/teams/${t.id}`} className="flex flex-col rounded-xl border border-line bg-surface p-4 shadow-card transition-shadow hover:shadow-raised">
                     <div className="flex items-center gap-2"><Users className="h-4 w-4 text-muted" aria-hidden /><p className="text-[14px] font-semibold">{t.name}</p><span className="ml-auto text-[12px] text-muted">{t.memberCount} people</span></div>
@@ -77,7 +77,7 @@ function DirectoryInner() {
             )
           )}
           {tab === "departments" && (
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               {depts.data.map((d) => (
                 <Link key={d.id} href={`/departments/${d.id}`} className="rounded-xl border border-line bg-surface p-4 shadow-card transition-shadow hover:shadow-raised">
                   <div className="flex items-center gap-2"><Building2 className="h-4 w-4" style={{ color: d.color }} aria-hidden /><p className="text-[14.5px] font-semibold">{d.name}</p><span className="ml-auto text-[12px] text-muted">{d.memberCount} people · {d.teams.length} teams</span></div>

@@ -40,7 +40,7 @@ function EmployeeWelcome() {
         <h1 className="mt-1 text-[26px] font-semibold tracking-tight">Hi {data.me.name.split(" ")[0]} — here&apos;s where you fit.</h1>
         <p className="mt-2 max-w-2xl text-[14px] text-slate-600">WorkMesh connects people, teams, goals and projects so you always know who&apos;s building what. Share a short progress update when something changes — that&apos;s it. No activity tracking, ever.</p>
       </div>
-      <div className="grid gap-5 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
         <Card><CardHeader icon={<Users className="h-4 w-4" />} title="You" /><CardBody className="text-[13.5px]"><p className="font-medium">{data.me.title}</p>{data.me.responsibilities.length > 0 && <p className="mt-1 text-muted">Responsible for {data.me.responsibilities.join(", ")}</p>}<div className="mt-3"><p className="mb-1 text-[12px] text-muted">Your manager</p>{data.manager ? <PersonChip person={data.manager} /> : <p className="text-muted">Not assigned yet</p>}</div></CardBody></Card>
         <Card>
           <CardHeader icon={<Building2 className="h-4 w-4" />} title={data.team ? `Your team: ${data.team.name}` : "Your team"} />
@@ -106,7 +106,7 @@ function CompanySetup() {
           </>)}
           {step === 1 && (<>
             <p className="text-[13.5px]">Create teams inside your departments.</p>
-            <form className="grid gap-2 sm:grid-cols-[1fr_180px_auto]" onSubmit={(e) => (e.preventDefault(), tName.trim().length > 1 && addTeam.mutate(undefined))}>
+            <form className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_180px_auto]" onSubmit={(e) => (e.preventDefault(), tName.trim().length > 1 && addTeam.mutate(undefined))}>
               <Input value={tName} onChange={(e) => setTName(e.target.value)} placeholder="Team name" aria-label="Team name" />
               <Select value={tDept} onChange={(e) => setTDept(e.target.value)} aria-label="Department"><option value="">No department</option>{depts.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}</Select>
               <Button type="submit" loading={addTeam.isPending}>Add</Button>
@@ -115,7 +115,7 @@ function CompanySetup() {
           </>)}
           {step === 2 && (<>
             <p className="text-[13.5px]">Invite colleagues. Each gets a single-use link that expires in 7 days.</p>
-            <form className="grid gap-2 sm:grid-cols-[1fr_130px_150px_auto]" onSubmit={(e) => (e.preventDefault(), email && invite.mutate(undefined))}>
+            <form className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_130px_150px_auto]" onSubmit={(e) => (e.preventDefault(), email && invite.mutate(undefined))}>
               <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@company.com" aria-label="Email" />
               <Select value={role} onChange={(e) => setRole(e.target.value)} aria-label="Role"><option value="MEMBER">Member</option><option value="ADMIN">Admin</option><option value="EXECUTIVE">Executive</option></Select>
               <Select value={inviteTeam} onChange={(e) => setInviteTeam(e.target.value)} aria-label="Team"><option value="">No team</option>{teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</Select>

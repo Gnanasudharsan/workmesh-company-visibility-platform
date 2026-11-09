@@ -25,7 +25,7 @@ export function ProjectOverview({ p }: { p: ProjectDetail }) {
   const basis = { milestones: "weighted share of completed milestones (critical milestones count double)", work_items: "share of completed work items (this project has no milestones)", none: "not enough data yet" }[p.progressBasis];
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+    <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div className="space-y-5">
         <Card>
           <CardHeader title="Health & progress" description="Derived from milestones, blockers, dates and dependencies — never from activity." />
@@ -34,7 +34,7 @@ export function ProjectOverview({ p }: { p: ProjectDetail }) {
             <ul className="space-y-1 text-[13px] text-slate-600">
               {p.healthReasons.map((r) => <li key={r} className="flex gap-2"><span className="text-faint">•</span>{r}</li>)}
             </ul>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <p className="mb-1 flex items-center gap-1 text-[12px] font-medium text-muted">Computed progress <span title={`Computed as the ${basis}.`}><Info className="h-3 w-3" aria-label={`Computed as the ${basis}.`} /></span></p>
                 <ProgressBar value={p.computedProgress} tone={healthTone(p.health)} label="Computed progress" />
@@ -110,12 +110,12 @@ function EditProject({ p, open, onClose }: { p: ProjectDetail; open: boolean; on
         <Field label="Name" htmlFor="ep-name"><Input id="ep-name" value={v.name} onChange={set("name")} /></Field>
         <Field label="Summary" htmlFor="ep-sum" hint="Visible to anyone who can see the project summary."><Input id="ep-sum" value={v.summary} onChange={set("summary")} /></Field>
         <Field label="Description" htmlFor="ep-desc"><Textarea id="ep-desc" rows={4} value={v.description} onChange={set("description")} /></Field>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Start" htmlFor="ep-start"><Input id="ep-start" type="date" value={v.startDate} onChange={set("startDate")} /></Field>
           <Field label="Target" htmlFor="ep-target"><Input id="ep-target" type="date" value={v.targetDate} onChange={set("targetDate")} /></Field>
         </div>
         {p.canManage ? (
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Field label="Lead" htmlFor="ep-lead"><PersonSelect id="ep-lead" value={v.leadId} onChange={set("leadId")} /></Field>
             <Field label="Owning team" htmlFor="ep-team"><TeamSelect id="ep-team" value={v.owningTeamId} onChange={set("owningTeamId")} /></Field>
             <Field label="Visibility" htmlFor="ep-vis"><Select id="ep-vis" value={v.visibility} onChange={set("visibility")}>{["ORG", "TEAM", "PROJECT_MEMBERS", "RESTRICTED"].map((x) => <option key={x} value={x}>{label(x)}</option>)}</Select></Field>

@@ -37,7 +37,7 @@ export default function PermissionInspector() {
     }
   };
   return (
-    <div className="grid gap-5 xl:grid-cols-[380px_minmax(0,1fr)]">
+    <div className="grid grid-cols-1 gap-5 xl:grid-cols-[380px_minmax(0,1fr)]">
       <Card className="self-start">
         <CardHeader icon={<ShieldQuestion className="h-4 w-4" />} title="Why can (or can't) someone see this?" description="Runs the real policy engine with that member's real relationships. You can only inspect resources you can see yourself." />
         <CardBody className="space-y-3">

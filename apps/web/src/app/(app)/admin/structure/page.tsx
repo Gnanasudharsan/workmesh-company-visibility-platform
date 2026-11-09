@@ -26,7 +26,7 @@ export default function StructurePage() {
   if (error) return <ErrorState error={error} onRetry={refetch} />;
   if (!depts) return <LoadingCards />;
   return (
-    <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+    <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <div className="space-y-3">
         <div className="flex gap-2"><Button variant="primary" size="sm" onClick={() => setEditDept("new")}><Plus className="h-3.5 w-3.5" /> Department</Button><Button size="sm" onClick={() => setNewTeam(true)}><Plus className="h-3.5 w-3.5" /> Team</Button></div>
         {depts.map((d) => (
@@ -101,7 +101,7 @@ function TeamEditor({ id, depts, onDeleted }: { id: string; depts: Dept[]; onDel
     <Card>
       <CardHeader title={t.name} action={<Button size="xs" variant="ghost" className="text-danger" onClick={() => confirm("Delete this team?") && del.mutate(undefined)}><Trash2 className="h-3.5 w-3.5" /> Delete</Button>} />
       <CardBody className="space-y-4">
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Name" htmlFor="te-name"><Input id="te-name" value={v.name} onChange={set("name")} /></Field>
           <Field label="Department" htmlFor="te-dept"><Select id="te-dept" value={v.departmentId} onChange={set("departmentId")}><option value="">None</option>{depts.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}</Select></Field>
         </div>

@@ -25,7 +25,7 @@ export default function LeadPage() {
     <>
       <PageHeader title="Projects I lead" description="Contributor progress across the projects you lead — including people who don't report to you." />
       {error ? <ErrorState error={error} onRetry={refetch} /> : isLoading || !data ? <LoadingCards /> : (
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
           <div className="space-y-5">
             <Card>
               <CardHeader title="Your projects" />

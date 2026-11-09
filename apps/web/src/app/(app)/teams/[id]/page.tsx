@@ -41,7 +41,7 @@ export default function TeamPage() {
         description={t.mission ?? undefined}
         actions={<>{t.isMember && <Badge tone="brand">Your team</Badge>}{t.canManage && <ButtonLink href="/admin/structure" size="sm">Manage team</ButtonLink>}</>}
       />
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-5">
           <Card>
             <CardHeader title="Areas of responsibility" description="What to come to this team for" />

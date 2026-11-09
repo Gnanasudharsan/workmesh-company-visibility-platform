@@ -47,7 +47,7 @@ export default function LeadershipPage() {
             <Stat label="Blocked" value={data.portfolioHealth.blocked} tone="danger" />
           </div>
 
-          <div className="grid gap-5 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+          <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
             <Card>
               <CardHeader icon={<Target className="h-4 w-4" />} title="Company goals" action={<Link href="/roadmap?view=goals" className="text-[12.5px] font-medium text-brand">Goal hierarchy</Link>} />
               <CardBody className="space-y-4">
@@ -86,7 +86,7 @@ export default function LeadershipPage() {
             </Card>
           </div>
 
-          <div className="grid gap-5 xl:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
             <Card>
               <CardHeader icon={<AlertTriangle className="h-4 w-4" />} title="Delivery risks" description="Why each project needs attention" />
               <CardBody className="space-y-3">

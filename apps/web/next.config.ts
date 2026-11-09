@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { resolve } from "node:path";
 
 const api = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8020";
 
@@ -26,8 +27,10 @@ const securityHeaders = [
 const config: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  devIndicators: false,
   transpilePackages: ["@workmesh/core"],
   output: "standalone",
+  outputFileTracingRoot: resolve(__dirname, "../.."),
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

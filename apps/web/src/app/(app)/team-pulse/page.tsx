@@ -130,7 +130,7 @@ export default function TeamPulsePage() {
           </Card>
           <p className="-mt-3 mb-5 flex items-center gap-1.5 text-[12px] text-muted"><Scale className="h-3.5 w-3.5" aria-hidden /> Freshness describes information, not people. WorkMesh never measures online time or activity volume.</p>
 
-          <div className="grid gap-5 xl:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
             <Card>
               <CardHeader icon={<OctagonAlert className="h-4 w-4" />} title="Blocker queue" description="Unresolved blockers you can act on" action={<ButtonLink href="/blockers?scope=queue" size="xs" variant="ghost">All</ButtonLink>} />
               <CardBody className="px-2 pb-2">{data.blockerQueue.length ? data.blockerQueue.slice(0, 8).map((b) => <BlockerRow key={b.id} b={b} />) : <EmptyState compact title="No unresolved blockers" />}</CardBody>

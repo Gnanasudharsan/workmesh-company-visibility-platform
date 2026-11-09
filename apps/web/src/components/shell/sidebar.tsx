@@ -135,8 +135,10 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
 export function Sidebar() {
   return (
-    <aside className="sticky top-0 hidden h-screen w-[248px] shrink-0 border-r border-line bg-[#f2f5fa] lg:block">
-      <SidebarContent />
+    <aside className="hidden w-[248px] shrink-0 border-r border-line bg-[#f2f5fa] lg:block">
+      <div className="sticky top-0 h-screen">
+        <SidebarContent />
+      </div>
     </aside>
   );
 }

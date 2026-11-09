@@ -18,7 +18,7 @@ export default function PrivacyPage() {
     <div className="mx-auto max-w-3xl">
       <PageHeader eyebrow="Our commitment" title="Visibility without surveillance" description="WorkMesh exists to replace status meetings and guesswork — not to watch people." />
       <Card className="mb-5">
-        <CardBody className="grid gap-6 pt-5 sm:grid-cols-2">
+        <CardBody className="grid grid-cols-1 gap-6 pt-5 sm:grid-cols-2">
           <Item icon={<Ban className="h-4 w-4" aria-hidden />} title="What we never do">No keystroke, mouse, screen, webcam or browser monitoring. No online-time tracking. No productivity scores, rankings or behavioral profiles.</Item>
           <Item icon={<Eye className="h-4 w-4" aria-hidden />} title="What we show">What people choose to share: progress updates, blockers, help requests and project records. Freshness labels describe information, never people.</Item>
           <Item icon={<EyeOff className="h-4 w-4" aria-hidden />} title="Drafts stay yours">Drafts and private updates are visible only to their author — not to managers, executives or administrators.</Item>

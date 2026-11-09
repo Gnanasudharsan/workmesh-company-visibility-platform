@@ -41,7 +41,7 @@ function SearchInner() {
         <Input value={q} onChange={(e) => setQ(e.target.value)} className="h-10 pl-9" placeholder="Search everything you can access" aria-label="Search" autoFocus />
       </form>
       {term.length < 2 ? <Card><EmptyState title="Type at least two characters" /></Card> : error ? <ErrorState error={error} /> : isLoading || !data ? <LoadingCards /> : data.total === 0 ? <Card><EmptyState title={`No results for “${term}”`} description="Nothing you have access to matches." /></Card> : (
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {GROUPS.filter((g) => data.results[g.key]?.length).map((g) => (
             <Card key={g.key}>
               <CardHeader title={`${g.title} (${data.results[g.key]!.length})`} />

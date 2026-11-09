@@ -32,7 +32,7 @@ export default function AdminOverviewPage() {
         <Stat label="Teams" value={data.teams} href="/admin/structure" hint={`${data.teamsWithoutLead.length} without a lead`} />
         <Stat label="Deactivated" value={data.deactivated} />
       </div>
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <Card>
           <CardHeader title="People without a manager" description="Owners excluded" />
           <CardBody className="space-y-2">{data.peopleWithoutManager.length ? data.peopleWithoutManager.map((p) => <PersonChip key={p.id} person={p} />) : <p className="text-[13px] text-muted">Everyone has a manager.</p>}<Link href="/admin/reporting" className="block pt-1 text-[12.5px] font-medium text-brand">Edit reporting lines</Link></CardBody>

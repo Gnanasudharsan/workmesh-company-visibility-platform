@@ -71,7 +71,7 @@ export default function PersonPage() {
           </div>
         </div>
       </Card>
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-5">
           {(p.bio || p.responsibilities.length > 0) && (
             <Card>
@@ -107,7 +107,7 @@ export default function PersonPage() {
           )}
           <section>
             <h2 className="mb-2 text-[14px] font-semibold">Recent updates shared with you</h2>
-            {p.recentUpdates.length ? <div className="grid gap-3 lg:grid-cols-2">{p.recentUpdates.map((u) => <UpdateCard key={u.id} u={u} />)}</div> : <Card><EmptyState compact title="Nothing shared with you yet" /></Card>}
+            {p.recentUpdates.length ? <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">{p.recentUpdates.map((u) => <UpdateCard key={u.id} u={u} />)}</div> : <Card><EmptyState compact title="Nothing shared with you yet" /></Card>}
           </section>
         </div>
         <aside className="space-y-5">
@@ -144,7 +144,7 @@ function EditProfile({ p, open, onClose }: { p: Person; open: boolean; onClose: 
       <div className="space-y-3">
         <Field label="About you" htmlFor="pf-bio"><Textarea id="pf-bio" value={v.bio} onChange={set("bio")} /></Field>
         <Field label="Responsibilities" htmlFor="pf-resp" hint="Comma-separated — helps colleagues find the right person."><Input id="pf-resp" value={v.responsibilities} onChange={set("responsibilities")} /></Field>
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <Field label="Location" htmlFor="pf-loc"><Input id="pf-loc" value={v.location} onChange={set("location")} /></Field>
           <Field label="Timezone" htmlFor="pf-tz"><Input id="pf-tz" value={v.timezone} onChange={set("timezone")} /></Field>
           <Field label="Contact" htmlFor="pf-contact"><Input id="pf-contact" value={v.contact} onChange={set("contact")} /></Field>

@@ -33,14 +33,14 @@ export default function ReportingPage() {
   const asReport = (history ?? []).filter((h) => h.report?.id === person);
   const asManager = (history ?? []).filter((h) => h.manager?.id === person && !h.endedAt);
   return (
-    <div className="grid gap-5 xl:grid-cols-2">
+    <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
       <Card>
         <CardHeader icon={<UserRoundCog className="h-4 w-4" />} title="Change who someone reports to" description="Self-management, circular chains and duplicate primary managers are rejected." />
         <CardBody className="space-y-3">
           <Field label="Person" htmlFor="r-person"><PersonSelect id="r-person" value={person} onChange={(e) => setPerson(e.target.value)} placeholder="Choose a person" /></Field>
           {person && (
             <>
-              <div className="grid gap-3 sm:grid-cols-[1fr_140px]">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_140px]">
                 <Field label="New manager" htmlFor="r-mgr"><PersonSelect id="r-mgr" value={manager} onChange={(e) => setManager(e.target.value)} exclude={[person]} placeholder="Choose a manager" /></Field>
                 <Field label="Type" htmlFor="r-type"><Select id="r-type" value={type} onChange={(e) => setType(e.target.value as "PRIMARY")}><option value="PRIMARY">Primary</option><option value="DOTTED">Dotted line</option></Select></Field>
               </div>
@@ -70,7 +70,7 @@ export default function ReportingPage() {
       <Card>
         <CardHeader title="Temporary delegation" description="A delegate temporarily inherits a manager's reporting line. Access ends automatically at expiry." />
         <CardBody className="space-y-3">
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Field label="Manager (delegator)" htmlFor="dl-from"><PersonSelect id="dl-from" value={d.delegatorId} onChange={(e) => setD({ ...d, delegatorId: e.target.value })} placeholder="Choose" /></Field>
             <Field label="Delegate" htmlFor="dl-to"><PersonSelect id="dl-to" value={d.delegateId} onChange={(e) => setD({ ...d, delegateId: e.target.value })} exclude={[d.delegatorId]} placeholder="Choose" /></Field>
             <Field label="Expires" htmlFor="dl-exp"><Input id="dl-exp" type="date" value={d.expiresAt} onChange={(e) => setD({ ...d, expiresAt: e.target.value })} /></Field>

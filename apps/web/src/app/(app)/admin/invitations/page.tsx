@@ -25,7 +25,7 @@ export default function InvitationsPage() {
   const revoke = useAction((id: string) => api.post(`/admin/invitations/${id}/revoke`), { success: "Invitation revoked", invalidate: inv });
   const set = (k: keyof typeof v) => (e: { target: { value: string } }) => setV((s) => ({ ...s, [k]: e.target.value }));
   return (
-    <div className="grid gap-5 xl:grid-cols-[380px_minmax(0,1fr)]">
+    <div className="grid grid-cols-1 gap-5 xl:grid-cols-[380px_minmax(0,1fr)]">
       <Card className="self-start">
         <CardHeader icon={<Mail className="h-4 w-4" />} title="Invite someone" description="Single-use link, expires in 7 days." />
         <CardBody className="space-y-3">

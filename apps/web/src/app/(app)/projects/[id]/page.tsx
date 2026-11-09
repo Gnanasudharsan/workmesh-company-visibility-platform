@@ -52,7 +52,7 @@ function ProjectInner() {
         <Card>
           <CardBody className="space-y-4 pt-5">
             <div className="flex flex-wrap items-center gap-2"><HealthBadge health={p.health} reasons={p.healthReasons} /><StatusBadge status={p.status} /></div>
-            <div className="grid gap-4 text-[13px] sm:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 text-[13px] sm:grid-cols-4">
               <div><p className="text-muted">Lead</p><PersonChip person={p.lead} /></div>
               <div><p className="text-muted">Team</p><p className="font-medium">{p.owningTeam?.name ?? "—"}</p></div>
               <div><p className="text-muted">Target</p><p className="font-medium">{day(p.targetDate, true)}</p></div>
@@ -96,7 +96,7 @@ function ProjectInner() {
         <TabPanel value="milestones"><MilestonesTab p={p} /></TabPanel>
         <TabPanel value="work"><WorkTab p={p} openItemId={params.get("item")} onOpenItem={(item) => router.replace(`/projects/${id}?tab=work${item ? `&item=${item}` : ""}`, { scroll: false })} /></TabPanel>
         <TabPanel value="updates">
-          {updates?.length ? <div className="grid gap-3 lg:grid-cols-2">{updates.map((u) => <UpdateCard key={u.id} u={u} showProject={false} />)}</div> : <Card><EmptyState title="No updates yet" action={<Button variant="primary" onClick={() => openComposer({ projectId: p.id })}>Share the first update</Button>} /></Card>}
+          {updates?.length ? <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">{updates.map((u) => <UpdateCard key={u.id} u={u} showProject={false} />)}</div> : <Card><EmptyState title="No updates yet" action={<Button variant="primary" onClick={() => openComposer({ projectId: p.id })}>Share the first update</Button>} /></Card>}
         </TabPanel>
         <TabPanel value="blockers">
           <Card className="p-2">{blockers?.length ? blockers.map((b) => <BlockerRow key={b.id} b={b} />) : <EmptyState title="No blockers" description="Nothing is in the way right now." />}</Card>

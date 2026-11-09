@@ -73,7 +73,7 @@ function EditUpdate({ u, onDone }: { u: UpdateDetail; onDone: () => void }) {
     <Card>
       <CardHeader title="Edit update" description={u.status === "PUBLISHED" ? "The previous version is kept in the edit history." : undefined} />
       <CardBody className="space-y-3">
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Stage" htmlFor="eu-stage"><Select id="eu-stage" value={v.stage} onChange={set("stage")}>{UPDATE_STAGES.map((s) => <option key={s} value={s}>{label(s)}</option>)}</Select></Field>
           <Field label="Who can see this" htmlFor="eu-vis"><Select id="eu-vis" value={v.visibility} onChange={set("visibility")}>{UPDATE_VISIBILITIES.map((s) => <option key={s} value={s}>{label(s)}</option>)}</Select></Field>
         </div>

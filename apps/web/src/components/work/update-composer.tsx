@@ -103,7 +103,7 @@ export function UpdateComposer() {
       }
     >
       <form className="space-y-4" onSubmit={submit(true)}>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Project" htmlFor="u-project">
             <ProjectSelect id="u-project" {...register("projectId")} placeholder="Not tied to a project" />
           </Field>
@@ -126,7 +126,7 @@ export function UpdateComposer() {
           <OctagonAlert className="h-4 w-4" aria-hidden /> {withBlocker ? "I'm blocked — this will create a tracked blocker" : "I'm blocked on something"}
         </button>
         {withBlocker && (
-          <div className="grid gap-3 rounded-lg border border-red-100 bg-red-50/40 p-3 sm:grid-cols-[1fr_140px]">
+          <div className="grid grid-cols-1 gap-3 rounded-lg border border-red-100 bg-red-50/40 p-3 sm:grid-cols-[1fr_140px]">
             <Field label="What's blocking you?" htmlFor="u-blocker">
               <Input id="u-blocker" placeholder="e.g. Waiting on sandbox credentials" {...register("blockerTitle", { required: withBlocker })} />
             </Field>
@@ -148,7 +148,7 @@ export function UpdateComposer() {
             <Field label="Completed recently" htmlFor="u-done">
               <Textarea id="u-done" rows={2} placeholder="Meaningful outcomes, not activity" {...register("completed")} />
             </Field>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field label="Milestone" htmlFor="u-ms">
                 <MilestoneSelect id="u-ms" projectId={projectId || undefined} {...register("milestoneId")} />
               </Field>
@@ -161,7 +161,7 @@ export function UpdateComposer() {
                 </Select>
               </Field>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field label="Help needed" htmlFor="u-help">
                 <Input id="u-help" placeholder="What support would unblock you?" {...register("helpNeeded")} />
               </Field>

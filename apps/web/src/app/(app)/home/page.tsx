@@ -53,11 +53,11 @@ export default function HomePage() {
         }
       />
       {error ? <ErrorState error={error} onRetry={refetch} /> : isLoading || !data ? <LoadingCards count={4} className="lg:grid-cols-2" /> : (
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
           <div className="min-w-0 space-y-5">
             {/* Status strip */}
             <Card className="overflow-hidden">
-              <div className="grid divide-y divide-line sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+              <div className="grid grid-cols-1 divide-y divide-line sm:grid-cols-3 sm:divide-x sm:divide-y-0">
                 <div className="p-4">
                   <p className="text-[12px] font-medium text-muted">Your last update</p>
                   <div className="mt-1.5 flex items-center gap-2"><FreshnessBadge freshness={data.freshness} />{data.currentStage && <Badge tone="brand">{label(data.currentStage)}</Badge>}</div>
@@ -118,7 +118,7 @@ export default function HomePage() {
                 <span className="text-[12px] text-muted">Updates your teammates shared with you</span>
               </div>
               {data.teamActivity.length === 0 ? <Card><EmptyState compact title="Quiet on your team" description="Shared updates from teammates will appear here." /></Card> : (
-                <div className="grid gap-3 lg:grid-cols-2">{data.teamActivity.slice(0, 6).map((u) => <UpdateCard key={u.id} u={u} />)}</div>
+                <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">{data.teamActivity.slice(0, 6).map((u) => <UpdateCard key={u.id} u={u} />)}</div>
               )}
             </section>
           </div>

@@ -182,7 +182,7 @@ export function buildBrief(input: BriefInput): BriefSection[] {
     .filter((u) => u.helpNeeded && u.helpNeeded.trim() && inWindow(u.publishedAt))
     .map((u) => ({
       title: u.helpNeeded!.trim(),
-      detail: `${u.authorName}${u.projectId ? ` · ${projectName.get(u.projectId) ?? ""}` : ""}`,
+      detail: [u.authorName, u.projectId ? projectName.get(u.projectId) : null].filter(Boolean).join(" · "),
       at: iso(u.publishedAt),
       ref: { type: "update", id: u.id },
       projectId: u.projectId,
@@ -192,7 +192,7 @@ export function buildBrief(input: BriefInput): BriefSection[] {
     .filter((a) => a.status === "OPEN")
     .map((a) => ({
       title: a.title,
-      detail: `Owner: ${a.ownerName}${a.dueDate ? ` · due ${a.dueDate.toISOString().slice(0, 10)}` : ""}`,
+      detail: `Owner: ${a.ownerName}`,
       at: a.dueDate ? iso(a.dueDate) : undefined,
       ref: { type: "actionItem", id: a.id },
       projectId: a.projectId,

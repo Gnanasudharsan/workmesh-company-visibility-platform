@@ -28,7 +28,7 @@ export function WorkTab({ p, openItemId, onOpenItem }: { p: ProjectDetail; openI
         <p className="text-[13px] text-muted">{data.length} work items · {data.filter((w) => w.status === "DONE").length} done</p>
         {p.canEdit && <Button size="sm" variant="primary" onClick={() => setAdding(true)}><Plus className="h-3.5 w-3.5" /> Add work item</Button>}
       </div>
-      <div className="grid gap-3 overflow-x-auto pb-2 md:grid-cols-5">
+      <div className="grid grid-cols-1 gap-3 overflow-x-auto pb-2 md:grid-cols-5">
         {COLUMNS.map((col) => {
           const items = data.filter((w) => w.status === col);
           return (
@@ -114,7 +114,7 @@ function AddWorkItem({ open, onClose, p }: { open: boolean; onClose: () => void;
       <div className="space-y-3">
         <Field label="Title" htmlFor="aw-title" required><Input id="aw-title" value={v.title} onChange={set("title")} autoFocus /></Field>
         <Field label="Description" htmlFor="aw-desc"><Textarea id="aw-desc" value={v.description} onChange={set("description")} /></Field>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Assignee" htmlFor="aw-as"><PersonSelect id="aw-as" value={v.assigneeId} onChange={set("assigneeId")} /></Field>
           <Field label="Milestone" htmlFor="aw-ms"><Select id="aw-ms" value={v.milestoneId} onChange={set("milestoneId")}><option value="">None</option>{p.milestoneList.map((m) => <option key={m.id} value={m.id}>{m.title}</option>)}</Select></Field>
           <Field label="Priority" htmlFor="aw-pri"><Select id="aw-pri" value={v.priority} onChange={set("priority")}>{PRIORITIES.map((x) => <option key={x} value={x}>{label(x)}</option>)}</Select></Field>
@@ -163,7 +163,7 @@ export function MilestonesTab({ p }: { p: ProjectDetail }) {
       <Dialog open={adding} onOpenChange={setAdding} title="Add milestone" footer={<><Button variant="ghost" onClick={() => setAdding(false)}>Cancel</Button><Button variant="primary" disabled={v.title.trim().length < 2} loading={create.isPending} onClick={() => create.mutate(undefined)}>Add</Button></>}>
         <div className="space-y-3">
           <Field label="Title" htmlFor="am-title" required><Input id="am-title" value={v.title} onChange={(e) => setV({ ...v, title: e.target.value })} autoFocus /></Field>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Field label="Due" htmlFor="am-due"><Input id="am-due" type="date" value={v.dueDate} onChange={(e) => setV({ ...v, dueDate: e.target.value })} /></Field>
             <Field label="Owner" htmlFor="am-owner"><PersonSelect id="am-owner" value={v.ownerId} onChange={(e) => setV({ ...v, ownerId: e.target.value })} /></Field>
           </div>

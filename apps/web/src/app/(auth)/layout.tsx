@@ -4,7 +4,7 @@ import { Logo } from "@/components/shell/logo";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="grid min-h-screen lg:grid-cols-[1.05fr_1fr]">
+    <div className="grid grid-cols-1 min-h-screen lg:grid-cols-[1.05fr_1fr]">
       <div className="flex flex-col px-6 py-8 sm:px-12">
         <Logo />
         <div className="flex flex-1 items-center justify-center py-10">

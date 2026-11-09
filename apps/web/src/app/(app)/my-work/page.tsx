@@ -77,11 +77,11 @@ function MyWorkInner() {
           {(drafts?.length ?? 0) > 0 && (
             <section className="mb-5">
               <h2 className="mb-2 text-[13px] font-semibold">Private drafts <span className="font-normal text-muted">— only you can see these</span></h2>
-              <div className="grid gap-3 lg:grid-cols-2">{drafts!.map((u) => <UpdateCard key={u.id} u={u} />)}</div>
+              <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">{drafts!.map((u) => <UpdateCard key={u.id} u={u} />)}</div>
             </section>
           )}
           <h2 className="mb-2 text-[13px] font-semibold">Published</h2>
-          {published?.length ? <div className="grid gap-3 lg:grid-cols-2">{published.map((u) => <UpdateCard key={u.id} u={u} />)}</div> : <Card><EmptyState title="You haven't published an update yet" action={<Button variant="primary" onClick={() => openComposer()}>Share your first update</Button>} /></Card>}
+          {published?.length ? <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">{published.map((u) => <UpdateCard key={u.id} u={u} />)}</div> : <Card><EmptyState title="You haven't published an update yet" action={<Button variant="primary" onClick={() => openComposer()}>Share your first update</Button>} /></Card>}
         </TabPanel>
         <TabPanel value="blockers"><Card className="p-2">{data.blockers.length ? data.blockers.map((b) => <BlockerRow key={b.id} b={b} />) : <EmptyState title="Nothing blocking you" />}</Card></TabPanel>
         <TabPanel value="milestones">
@@ -98,7 +98,7 @@ function MyWorkInner() {
           )) : <EmptyState title="No open action items" />}</Card>
         </TabPanel>
         <TabPanel value="team">
-          <div className="grid gap-5 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
             <Card><CardHeader title="Your manager" /><CardBody>{data.manager ? <PersonChip person={data.manager} /> : <p className="text-muted">No manager assigned.</p>}</CardBody></Card>
             <Card><CardHeader title="Your teams" /><CardBody className="space-y-1">{person?.teams.map((t) => <Link key={t.id} href={`/teams/${t.id}`} className="block text-[13.5px] font-medium hover:text-brand-deep">{t.name}</Link>)}</CardBody></Card>
             {(person?.directReports.length ?? 0) > 0 && <Card><CardHeader title="Your direct reports" /><CardBody className="space-y-2">{person!.directReports.map((p) => <PersonChip key={p.id} person={p} />)}</CardBody></Card>}

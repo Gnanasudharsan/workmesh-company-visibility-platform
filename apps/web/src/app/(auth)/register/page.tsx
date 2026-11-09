@@ -43,7 +43,7 @@ export default function RegisterPage() {
       <h1 className="text-[24px] font-semibold tracking-[-0.02em]">Create your company</h1>
       <p className="mt-1 text-[13.5px] text-muted">You&apos;ll be the owner. Next you&apos;ll add departments, teams and invite people.</p>
       <form onSubmit={submit} className="mt-6 space-y-4">
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Your name" htmlFor="r-name" error={formState.errors.name && "Required"}><Input id="r-name" autoComplete="name" {...register("name", { required: true, minLength: 2 })} /></Field>
           <Field label="Your title" htmlFor="r-title"><Input id="r-title" {...register("title")} /></Field>
         </div>

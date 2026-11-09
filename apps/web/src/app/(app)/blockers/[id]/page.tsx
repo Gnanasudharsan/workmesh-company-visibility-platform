@@ -42,7 +42,7 @@ export default function BlockerPage() {
         title={b.title}
         actions={<><SeverityBadge severity={b.severity} /><StatusBadge status={b.state} /><VisibilityBadge visibility={b.visibility} /></>}
       />
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-5">
           <Card>
             <CardBody className="pt-4 text-[13.5px]">

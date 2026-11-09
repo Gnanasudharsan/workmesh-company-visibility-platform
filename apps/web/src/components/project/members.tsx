@@ -28,7 +28,7 @@ export function MembersTab({ p }: { p: ProjectDetail }) {
   const grant = useAction(() => api.post(`/projects/${p.id}/grants`, { granteeId: grantee, level, expiresAt: isoDate(expires) }), { success: "Access granted", invalidate: ["/projects"], onSuccess: () => setGrantee("") });
   const revoke = useAction((id: string) => api.del(`/projects/${p.id}/grants/${id}`), { success: "Access revoked", invalidate: ["/projects"] });
   return (
-    <div className="grid gap-5 lg:grid-cols-2">
+    <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
       <Card>
         <CardHeader title="Members" description="Project members can see all project details." />
         <CardBody className="space-y-2">
@@ -71,7 +71,7 @@ export function MembersTab({ p }: { p: ProjectDetail }) {
                   <Button size="sm" variant="ghost" onClick={() => revoke.mutate(g.id)}>Revoke</Button>
                 </div>
               ))}
-              <div className="grid gap-2 border-t border-line pt-3 sm:grid-cols-[1fr_auto_auto_auto]">
+              <div className="grid grid-cols-1 gap-2 border-t border-line pt-3 sm:grid-cols-[1fr_auto_auto_auto]">
                 <PersonSelect value={grantee} onChange={(e) => setGrantee(e.target.value)} placeholder="Grant access to…" aria-label="Grantee" />
                 <Select value={level} onChange={(e) => setLevel(e.target.value)} aria-label="Level"><option value="SUMMARY">Summary</option><option value="DETAILS">Details</option></Select>
                 <Input type="date" value={expires} onChange={(e) => setExpires(e.target.value)} aria-label="Expires" />
@@ -142,7 +142,7 @@ export function DependenciesTab({ p }: { p: ProjectDetail }) {
         <div className="space-y-3">
           <Field label="Upstream project" htmlFor="dep-up"><DepProjectSelect id="dep-up" exclude={p.id} value={v.upstreamProjectId} onChange={(e) => setV({ ...v, upstreamProjectId: e.target.value })} /></Field>
           <Field label="What do you need from it?" htmlFor="dep-desc"><Input id="dep-desc" value={v.description} onChange={(e) => setV({ ...v, description: e.target.value })} /></Field>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Field label="Needed by" htmlFor="dep-need"><Input id="dep-need" type="date" value={v.needBy} onChange={(e) => setV({ ...v, needBy: e.target.value })} /></Field>
             <Field label="Owner" htmlFor="dep-owner"><PersonSelect id="dep-owner" value={v.ownerId} onChange={(e) => setV({ ...v, ownerId: e.target.value })} /></Field>
           </div>

@@ -96,7 +96,7 @@ function Timeline({ data, highlight }: { data: RoadmapData; highlight: string | 
 function Kanban({ projects }: { projects: ProjectSummary[] }) {
   const cols = PROJECT_STATUSES.filter((s) => s !== "CANCELLED");
   return (
-    <div className="grid gap-3 overflow-x-auto pb-2 md:grid-cols-3 xl:grid-cols-6">
+    <div className="grid grid-cols-1 gap-3 overflow-x-auto pb-2 md:grid-cols-3 xl:grid-cols-6">
       {cols.map((c) => {
         const items = projects.filter((p) => p.status === c);
         return (
@@ -189,7 +189,7 @@ function MilestoneTracker({ data }: { data: RoadmapData }) {
   const upcoming = open.filter((m) => (daysUntil(m.dueDate) ?? 0) >= 0);
   const done = data.milestones.filter((m) => m.status === "DONE").sort((a, b) => (b.completedAt ?? "").localeCompare(a.completedAt ?? "")).slice(0, 8);
   return (
-    <div className="grid gap-5 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
       <Card><CardBody className="pt-4"><h3 className="mb-2 text-[13px] font-semibold text-danger">Overdue ({overdue.length})</h3><MilestoneList byId={byId} items={overdue} tone="text-danger" /></CardBody></Card>
       <Card><CardBody className="pt-4"><h3 className="mb-2 text-[13px] font-semibold">Upcoming ({upcoming.length})</h3><MilestoneList byId={byId} items={upcoming} tone="text-brand" /></CardBody></Card>
       <Card><CardBody className="pt-4"><h3 className="mb-2 text-[13px] font-semibold text-success">Recently reached</h3><MilestoneList byId={byId} items={done} tone="text-success" /></CardBody></Card>

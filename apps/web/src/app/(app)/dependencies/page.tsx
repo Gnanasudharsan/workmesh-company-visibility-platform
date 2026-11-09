@@ -83,7 +83,7 @@ function ExplorerInner() {
         }
       />
       {error ? <ErrorState error={error} onRetry={refetch} /> : isLoading || !data ? <LoadingCards /> : data.nodes.length === 0 ? <Card><EmptyState title="No dependencies" description="This project neither depends on nor blocks other projects you can see." /></Card> : (
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
           <div className="h-[560px] overflow-hidden rounded-[var(--radius-card)] border border-line bg-[#fbfcfe] shadow-card">
             <ReactFlow nodes={graph.nodes} edges={graph.edges} nodeTypes={NODE_TYPES} onNodeClick={(_, n) => pick(n.id)} nodesDraggable={false} nodesConnectable={false} minZoom={0.2} proOptions={{ hideAttribution: true }} aria-label="Dependency graph">
               <Background variant={BackgroundVariant.Dots} gap={22} size={1.2} color="#D7DEEA" />

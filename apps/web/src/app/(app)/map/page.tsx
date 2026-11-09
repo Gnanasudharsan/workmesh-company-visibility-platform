@@ -271,7 +271,7 @@ function MapCanvas() {
           >
             <Background variant={BackgroundVariant.Dots} gap={22} size={1.2} color="#D7DEEA" />
             <Controls showInteractive={false} position="bottom-left" />
-            <MiniMap pannable zoomable position="bottom-right" nodeColor={(n) => (n.type === "goal" ? "#C4B5FD" : n.type === "project" ? "#93C5FD" : n.type === "person" ? "#E2E8F0" : "#CBD5E1")} maskColor="rgba(241,245,249,0.7)" />
+            <MiniMap pannable zoomable position="bottom-right" style={{ width: 150, height: 100 }} nodeColor={(n) => (n.type === "goal" ? "#C4B5FD" : n.type === "project" ? "#93C5FD" : n.type === "person" ? "#E2E8F0" : "#CBD5E1")} maskColor="rgba(241,245,249,0.7)" />
           </ReactFlow>
           {isFetching && <div className="absolute left-3 top-3 rounded-md bg-surface px-2 py-1 text-[11.5px] text-muted shadow-card">Updating…</div>}
           <div className="absolute left-3 top-3 hidden flex-wrap gap-2 rounded-lg bg-surface/90 px-2.5 py-1.5 text-[11px] text-muted shadow-card md:flex" aria-hidden={isFetching}>
