@@ -22,6 +22,7 @@ const MAX_ATTEMPTS = 8;
 export class WorkerService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(WorkerService.name);
   private worker?: Worker;
+  private workerConnection?: ReturnType<typeof redisConnection>;
   private timers: NodeJS.Timeout[] = [];
   enabled = false;
 
@@ -38,8 +39,9 @@ export class WorkerService implements OnModuleInit, OnModuleDestroy {
   start() {
     if (this.enabled) return;
     this.enabled = true;
+    this.workerConnection = redisConnection();
     this.worker = new Worker(EVENTS_QUEUE, async (job) => this.delivery.deliver(job.data.outboxId as string), {
-      connection: redisConnection(),
+      connection: this.workerConnection,
       prefix: config().REDIS_PREFIX,
       concurrency: 4,
     });
@@ -111,5 +113,7 @@ export class WorkerService implements OnModuleInit, OnModuleDestroy {
   async onModuleDestroy() {
     for (const t of this.timers) clearInterval(t);
     await this.worker?.close().catch(() => undefined);
+    // BullMQ does not close connections it was given; close ours so the process can exit.
+    this.workerConnection?.disconnect();
   }
 }
