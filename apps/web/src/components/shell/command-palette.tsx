@@ -37,6 +37,16 @@ function useDebounced(value: string, ms = 180) {
 const item = "flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-[13px] data-[selected=true]:bg-brand-soft data-[selected=true]:text-brand-deep";
 const group = "px-1 [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-faint";
 
+function Row({ go, href, label, kind, icon, sub }: { go: (href: string, label: string, kind: string) => void; href: string; label: string; kind: string; icon: ReactNode; sub?: string }) {
+  return (
+    <Command.Item value={`${kind}-${href}-${label}`} onSelect={() => go(href, label, kind)} className={item}>
+      <span className="text-faint">{icon}</span>
+      <span className="min-w-0 flex-1 truncate">{label}</span>
+      {sub && <span className="shrink-0 text-[11.5px] text-muted">{sub}</span>}
+    </Command.Item>
+  );
+}
+
 /** Global search. Results are authorized on the server before they are returned. */
 export function CommandPalette() {
   const { paletteOpen, setPaletteOpen, recent, pushRecent } = useUi();
@@ -63,13 +73,6 @@ export function CommandPalette() {
     router.push(href);
   };
   const r = debounced.length >= 2 ? data?.results : undefined;
-  const Row = ({ href, label, kind, icon, sub }: { href: string; label: string; kind: string; icon: ReactNode; sub?: string }) => (
-    <Command.Item value={`${kind}-${href}-${label}`} onSelect={() => go(href, label, kind)} className={item}>
-      <span className="text-faint">{icon}</span>
-      <span className="min-w-0 flex-1 truncate">{label}</span>
-      {sub && <span className="shrink-0 text-[11.5px] text-muted">{sub}</span>}
-    </Command.Item>
-  );
   const ic = (C: typeof Search) => <C className="h-4 w-4" aria-hidden />;
 
   return (
@@ -90,14 +93,14 @@ export function CommandPalette() {
                 <>
                   {recent.length > 0 && (
                     <Command.Group heading="Recent" className={group}>
-                      {recent.map((x) => <Row key={x.href} href={x.href} label={x.label} kind={x.kind} icon={ic(Clock)} sub={x.kind} />)}
+                      {recent.map((x) => <Row go={go} key={x.href} href={x.href} label={x.label} kind={x.kind} icon={ic(Clock)} sub={x.kind} />)}
                     </Command.Group>
                   )}
                   <Command.Group heading="Jump to" className={group}>
-                    <Row href="/map" label="Company Map" kind="Page" icon={ic(Building2)} />
-                    <Row href="/roadmap" label="Roadmaps" kind="Page" icon={ic(Target)} />
-                    <Row href="/directory" label="Directory" kind="Page" icon={ic(BookUser)} />
-                    <Row href="/meetings" label="Meetings" kind="Page" icon={ic(CalendarClock)} />
+                    <Row go={go} href="/map" label="Company Map" kind="Page" icon={ic(Building2)} />
+                    <Row go={go} href="/roadmap" label="Roadmaps" kind="Page" icon={ic(Target)} />
+                    <Row go={go} href="/directory" label="Directory" kind="Page" icon={ic(BookUser)} />
+                    <Row go={go} href="/meetings" label="Meetings" kind="Page" icon={ic(CalendarClock)} />
                   </Command.Group>
                 </>
               ) : (
@@ -114,15 +117,15 @@ export function CommandPalette() {
                       ))}
                     </Command.Group>
                   )}
-                  {!!r?.teams?.length && <Command.Group heading="Teams" className={group}>{r.teams.map((t) => <Row key={t.id} href={`/teams/${t.id}`} label={t.name} kind="Team" icon={ic(Users)} />)}</Command.Group>}
-                  {!!r?.departments?.length && <Command.Group heading="Departments" className={group}>{r.departments.map((d) => <Row key={d.id} href={`/departments/${d.id}`} label={d.name} kind="Department" icon={ic(Building2)} />)}</Command.Group>}
-                  {!!r?.projects?.length && <Command.Group heading="Projects" className={group}>{r.projects.map((p) => <Row key={p.id} href={`/projects/${p.id}`} label={p.name} kind="Project" icon={ic(FolderKanban)} sub={p.access === "summary" ? "Summary" : p.key} />)}</Command.Group>}
-                  {!!r?.goals?.length && <Command.Group heading="Goals" className={group}>{r.goals.map((g) => <Row key={g.id} href={`/goals/${g.id}`} label={g.title} kind="Goal" icon={ic(Target)} />)}</Command.Group>}
-                  {!!r?.initiatives?.length && <Command.Group heading="Initiatives" className={group}>{r.initiatives.map((g) => <Row key={g.id} href={`/initiatives/${g.id}`} label={g.title} kind="Initiative" icon={ic(Flag)} />)}</Command.Group>}
-                  {!!r?.milestones?.length && <Command.Group heading="Milestones" className={group}>{r.milestones.map((m) => <Row key={m.id} href={`/milestones/${m.id}`} label={m.title} kind="Milestone" icon={ic(Flag)} />)}</Command.Group>}
-                  {!!r?.updates?.length && <Command.Group heading="Updates" className={group}>{r.updates.map((u) => <Row key={u.id} href={`/updates/${u.id}`} label={u.currentFocus} kind="Update" icon={ic(MessageSquare)} sub={u.author?.name} />)}</Command.Group>}
-                  {!!r?.blockers?.length && <Command.Group heading="Blockers" className={group}>{r.blockers.map((b) => <Row key={b.id} href={`/blockers/${b.id}`} label={b.title} kind="Blocker" icon={ic(OctagonAlert)} />)}</Command.Group>}
-                  {!!r?.decisions?.length && <Command.Group heading="Decisions" className={group}>{r.decisions.map((d) => <Row key={d.id} href={d.meetingId ? `/meetings/${d.meetingId}` : "/decisions"} label={d.title} kind="Decision" icon={ic(Flag)} />)}</Command.Group>}
+                  {!!r?.teams?.length && <Command.Group heading="Teams" className={group}>{r.teams.map((t) => <Row go={go} key={t.id} href={`/teams/${t.id}`} label={t.name} kind="Team" icon={ic(Users)} />)}</Command.Group>}
+                  {!!r?.departments?.length && <Command.Group heading="Departments" className={group}>{r.departments.map((d) => <Row go={go} key={d.id} href={`/departments/${d.id}`} label={d.name} kind="Department" icon={ic(Building2)} />)}</Command.Group>}
+                  {!!r?.projects?.length && <Command.Group heading="Projects" className={group}>{r.projects.map((p) => <Row go={go} key={p.id} href={`/projects/${p.id}`} label={p.name} kind="Project" icon={ic(FolderKanban)} sub={p.access === "summary" ? "Summary" : p.key} />)}</Command.Group>}
+                  {!!r?.goals?.length && <Command.Group heading="Goals" className={group}>{r.goals.map((g) => <Row go={go} key={g.id} href={`/goals/${g.id}`} label={g.title} kind="Goal" icon={ic(Target)} />)}</Command.Group>}
+                  {!!r?.initiatives?.length && <Command.Group heading="Initiatives" className={group}>{r.initiatives.map((g) => <Row go={go} key={g.id} href={`/initiatives/${g.id}`} label={g.title} kind="Initiative" icon={ic(Flag)} />)}</Command.Group>}
+                  {!!r?.milestones?.length && <Command.Group heading="Milestones" className={group}>{r.milestones.map((m) => <Row go={go} key={m.id} href={`/milestones/${m.id}`} label={m.title} kind="Milestone" icon={ic(Flag)} />)}</Command.Group>}
+                  {!!r?.updates?.length && <Command.Group heading="Updates" className={group}>{r.updates.map((u) => <Row go={go} key={u.id} href={`/updates/${u.id}`} label={u.currentFocus} kind="Update" icon={ic(MessageSquare)} sub={u.author?.name} />)}</Command.Group>}
+                  {!!r?.blockers?.length && <Command.Group heading="Blockers" className={group}>{r.blockers.map((b) => <Row go={go} key={b.id} href={`/blockers/${b.id}`} label={b.title} kind="Blocker" icon={ic(OctagonAlert)} />)}</Command.Group>}
+                  {!!r?.decisions?.length && <Command.Group heading="Decisions" className={group}>{r.decisions.map((d) => <Row go={go} key={d.id} href={d.meetingId ? `/meetings/${d.meetingId}` : "/decisions"} label={d.title} kind="Decision" icon={ic(Flag)} />)}</Command.Group>}
                 </>
               )}
             </Command.List>

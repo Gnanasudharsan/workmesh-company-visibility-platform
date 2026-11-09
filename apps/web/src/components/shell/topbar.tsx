@@ -86,7 +86,7 @@ function NotificationsPopover() {
                 </button>
               </li>
             ))}
-            {data && data.items.length === 0 && <li className="px-4 py-8 text-center text-[13px] text-muted">You're all caught up.</li>}
+            {data && data.items.length === 0 && <li className="px-4 py-8 text-center text-[13px] text-muted">You&apos;re all caught up.</li>}
           </ul>
           <Link href="/notifications" className="block border-t border-line px-4 py-2.5 text-center text-[12.5px] font-medium text-brand hover:bg-subtle/60">View all</Link>
         </Popover.Content>

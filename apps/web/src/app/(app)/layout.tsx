@@ -30,7 +30,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       <div className="flex min-h-screen items-center justify-center" role="status" aria-label="Loading WorkMesh">
         {error && error.status !== 401 ? (
           <div className="max-w-sm text-center">
-            <p className="font-medium">We couldn't reach WorkMesh</p>
+            <p className="font-medium">We couldn&apos;t reach WorkMesh</p>
             <p className="mt-1 text-[13px] text-muted">{error.message}</p>
             <button className="mt-4 text-[13px] font-medium text-brand" onClick={() => window.location.reload()}>Try again</button>
           </div>

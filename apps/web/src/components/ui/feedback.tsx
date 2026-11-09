@@ -49,7 +49,7 @@ export function ErrorState({ error, onRetry }: { error: ApiError | Error | null 
     <div role="alert" className="flex items-start gap-3 rounded-[var(--radius-card)] border border-red-200 bg-danger-soft p-4 text-[13px] text-red-800">
       <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
       <div className="flex-1">
-        <p className="font-medium">Couldn't load this</p>
+        <p className="font-medium">Couldn&apos;t load this</p>
         <p className="mt-0.5 text-red-700">{error?.message ?? "Unknown error"}</p>
       </div>
       {onRetry && (
