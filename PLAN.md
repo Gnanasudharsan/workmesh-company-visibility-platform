@@ -77,3 +77,12 @@ Key decisions (see `docs/DECISIONS.md`):
 - [x] Accessibility, responsive layouts, empty/error states
 - [x] Playwright journeys A–G, screenshots
 - [x] Docs, README, CI, secret scanning, publication
+
+### Midnight Edition redesign (Phase 2)
+See [docs/UI_REDESIGN_PLAN.md](docs/UI_REDESIGN_PLAN.md).
+- [x] Tokens, typography, logo family
+- [x] Navy collapsible shell, motion system, command palette, mobile drawer
+- [x] Component library (heroes, data visuals, Living Mesh, contribution map, getting-started guide)
+- [x] Login, employee home, Team Pulse 2.0, leadership command center
+- [x] Company Map navy canvas + camera focus; Dependency Explorer Impact mode; notifications grouping
+- [x] Responsive coverage incl. 1024 px; screenshots; docs

@@ -30,3 +30,17 @@ Seed highlights: 51 people, 8 departments, 11 teams, a dotted line (Nina → Lin
 - **G — Isolation**: Noah opens a Northstar project URL → "Not available"; ⌘K "Checkout" → no results; graph/search/directory APIs return nothing from Northstar; a socket subscription to Northstar is rejected.
 
 Also worth trying: Company Map (expand Engineering → Payments, *Reporting subtree* on Daniel), Roadmaps (timeline/board/goals), Leadership as Elena, the permission inspector as Sam (inspect Sam on *Customer Health Score* — admin, yet no details).
+
+## Midnight Edition tour (5 minutes)
+
+1. **Login** — the navy *Living WorkMesh* panel is decorative; pick **Employee · Maya Chen**.
+2. **Home** — the navy hero shows Maya's real counts; *How your work connects* traces her assignments up to
+   company goals (hover a node to light its path). The *Getting started* guide ticks off as you go.
+3. **Company Map** — click Engineering → Payments → Maya: the camera glides to her and the inspector opens.
+   Switch to **Work** to follow projects to goals.
+4. Sign in as **Manager · Daniel Okafor** → **Team Pulse**: the status donut, report cards (try *List*),
+   blocker radar and action queue.
+5. **Dependencies** → **Impact**: only confirmed problems and what they can reach stay lit.
+6. Sign in as **Executive · Elena Vasquez** → **Leadership**: goal rings, portfolio donut, department health
+   and the strategic milestone timeline.
+7. Collapse the sidebar (chevron on its edge), press **⌘K**, and try the app at phone width.

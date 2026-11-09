@@ -65,7 +65,7 @@ The worker runs inside the API process by default (`WORKER_INLINE=true`) or stan
 - **Data**: TanStack Query keyed by API path; `useAction` wraps mutations with toasts, server error messages and invalidation. Realtime events invalidate path prefixes.
 - **State**: Zustand for UI-only state (workspace preference, composer, palette, recents). Authorization never depends on client state.
 - **Graph**: React Flow with custom nodes and ELK layouts (`layered` down/right, `mrtree`). The map list view renders the same authorized graph as an ARIA tree.
-- **Design system**: Tailwind 4 tokens in `globals.css`; primitives in `components/ui` follow the shadcn pattern (copied-in components on Radix).
+- **Design system**: Midnight Edition — Tailwind 4 tokens in `globals.css` ([DESIGN_TOKENS.md](DESIGN_TOKENS.md)); primitives in `components/ui` follow the shadcn pattern (copied-in components on Radix); signature components in `components/midnight`; see [UI_ARCHITECTURE.md](UI_ARCHITECTURE.md).
 
 ## Observability
 

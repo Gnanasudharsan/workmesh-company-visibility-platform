@@ -38,6 +38,24 @@ Only verified work is recorded here. Each milestone lists what was run and the r
 | 19 | Load test with measured latencies | see README (zero errors; RSS returns to ~79 MB idle) | `4e2fb8b` |
 | 20 | README + 14 docs; Mermaid validated in Chromium (6/6) and added to CI | `make docs-check` | (this commit) |
 
+## Phase 2 — Midnight Edition redesign
+
+| # | Milestone | Verification | Commit |
+| --- | --- | --- | --- |
+| M1 | UX audit, redesign plan, 22 baseline screenshots | `docs/UI_REDESIGN_PLAN.md`, `docs/screenshots/before-redesign/` | `6cf8828` |
+| M2 | Tokens, typography, WorkMesh mark family | tsc, ESLint, Vitest 16/16, browser check | `0383b8f` |
+| M3 | Navy collapsible shell, motion system, mobile drawer | Vitest 16/16, Playwright 9/9, 1440 + 390 px browser check | `1eff660` |
+| M4 | Component library, login redesign | Playwright 9/9, headless screenshots inspected | `cfd9607` |
+| M5 | Employee home, Team Pulse 2.0, leadership command center | Playwright 9/9 (journeys updated to report cards) | `1a2a693`, `6f7ff1e`, `da77714`, `c1f1c2f` |
+| M6 | Company Map navy canvas + camera focus; Dependency Impact mode | Vitest, screenshots inspected | `501acff`, `918b570` |
+| M7 | Animated tabs/segmented controls; grouped notifications | Playwright 9/9 | `45f8f97`, `c58705d` |
+| M8 | Responsive coverage 1920–390 px incl. 1024, 12 pages + login | `e2e/responsive.spec.ts` 2/2 | `d68970c` |
+| M9 | Getting-started guide | +2 Vitest (18/18) | `3f79f62` |
+| M10 | 24 Midnight Edition screenshots, docs | `make screenshots`, `make docs-check` | `95a241b`, (this commit) |
+
+No new API endpoints were needed: every chart is built from the existing permission-filtered
+dashboard payloads (`/dashboard/employee`, `/dashboard/manager`, `/dashboard/leadership`, `/dependencies`).
+
 ## Known issues / notes
 
 - Integration suites share one test database and must run serially (`--runInBand`, already the default script).

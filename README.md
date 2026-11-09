@@ -12,7 +12,7 @@ A multi-tenant company visibility platform for growing companies (≈20–150 pe
 
 </div>
 
-![Company Map — People view](docs/screenshots/05-company-map-people.png)
+![Employee home — Midnight Edition](docs/screenshots/midnight-edition/02-employee-dashboard.png)
 
 > All screenshots are real browser captures of the running app (Playwright). The data belongs to **Northstar Labs, a fictional company with synthetic demo data**.
 
@@ -35,6 +35,26 @@ WorkMesh models the company as two connected structures — **Company → Depart
 
 Principles: visibility without surveillance; transparency without confidentiality leaks; progress measured by outcomes; permissions enforced on the server. WorkMesh has **no** activity tracking, keystroke/screen/webcam monitoring, online-time metrics or productivity scores. It does not use an LLM.
 
+## Midnight Edition
+
+The interface is the **Midnight Edition** design: a midnight-navy command layer (sidebar, heroes, the
+Company Map canvas) over a calm porcelain workspace, with electric teal, soft violet and warm amber
+accents and semantic status colors that always come with an icon and a label.
+
+- **Signature visuals** — the *Living WorkMesh* constellation (decorative only, on login and heroes) and,
+  backed by real data, the employee *contribution map* (Task → Project → Initiative → Goal) and the navy
+  Company Map with camera focus and an inspector.
+- **Role dashboards rebuilt** — employee home with a navy hero and getting-started guide; Team Pulse 2.0
+  ("Your Team, At a Glance", report cards, blocker radar); a leadership command center with goal rings,
+  portfolio donut, department health and a strategic milestone timeline; Dependency Explorer **Impact mode**.
+- **One motion system** — 120–280 ms, transform/opacity only, shared-layout indicators in the sidebar,
+  tabs and segmented controls; everything honors `prefers-reduced-motion`.
+- **Charts only show authorized data** and each one has a text summary for assistive technology.
+
+Docs: [UI architecture](docs/UI_ARCHITECTURE.md) · [Design tokens](docs/DESIGN_TOKENS.md) ·
+[Screenshot gallery](docs/SCREENSHOTS.md) · before/after: [`before-redesign/`](docs/screenshots/before-redesign/)
+vs [`midnight-edition/`](docs/screenshots/midnight-edition/).
+
 ## Key features
 
 | Area | What it does |
@@ -53,37 +73,37 @@ Principles: visibility without surveillance; transparency without confidentialit
 
 ## Employee workspace
 
-![Employee home](docs/screenshots/02-employee-dashboard.png)
+![Company Map — People view](docs/screenshots/midnight-edition/05-company-map-people.png)
 
 What am I working on, what's my stage, what's next, am I blocked, who can help, which goal does my work support, what is my team doing. The update composer:
 
-![Progress update composer](docs/screenshots/10-update-composer.png)
+![Progress update composer](docs/screenshots/midnight-edition/10-update-composer.png)
 
 ## Manager workspace — Team Pulse
 
-![Team Pulse](docs/screenshots/03-manager-team-pulse.png)
+![Team Pulse](docs/screenshots/midnight-edition/03-manager-team-pulse.png)
 
 Each report's current focus, latest *shared* update with neutral freshness ("Updated this week", "No current update" — never "inactive"), next milestone, blockers and help requests; filters by team, project, status and period; ask for an update or assign a follow-up in one click. Blocker queue:
 
-![Blocker queue](docs/screenshots/11-blocker-queue.png) ![Blocker timeline](docs/screenshots/12-blocker-timeline.png)
+![Blocker queue](docs/screenshots/midnight-edition/11-blocker-queue.png) ![Blocker timeline](docs/screenshots/midnight-edition/12-blocker-timeline.png)
 
 ## Leadership workspace
 
-![Leadership overview](docs/screenshots/04-leadership-dashboard.png)
+![Leadership overview](docs/screenshots/midnight-edition/04-leadership-dashboard.png)
 
 Goal progress, portfolio and department health, delivery risks *with the reasons*, changes since the last review, strategic milestones, cross-initiative dependencies, ownership gaps and pending decisions. Executives receive **summaries** of non-restricted projects — seniority never unlocks details.
 
 ## Company Map — Work view, roadmap and projects
 
-![Work map](docs/screenshots/06-company-map-work.png)
-![Roadmap timeline](docs/screenshots/08-roadmap-timeline.png)
-![Project detail](docs/screenshots/09-project-detail.png)
-![Dependency explorer](docs/screenshots/13-dependency-explorer.png)
-![Team profile](docs/screenshots/07-team-profile.png)
+![Work map](docs/screenshots/midnight-edition/06-company-map-work.png)
+![Roadmap timeline](docs/screenshots/midnight-edition/08-roadmap-timeline.png)
+![Project detail](docs/screenshots/midnight-edition/09-project-detail.png)
+![Dependency explorer](docs/screenshots/midnight-edition/13-dependency-explorer.png)
+![Team profile](docs/screenshots/midnight-edition/07-team-profile.png)
 
 ## Meeting Briefs
 
-![Meeting brief](docs/screenshots/14-meeting-brief.png)
+![Meeting brief](docs/screenshots/midnight-edition/14-meeting-brief.png)
 
 ## Role-based permissions
 
@@ -95,8 +115,8 @@ Goal progress, portfolio and department health, delivery risks *with the reasons
 | **Executive** — Elena Vasquez (owner) | Portfolio-wide summaries, goals, risks; details only where she has a relationship | Details of projects she isn't on — "executive" grants summaries, not content |
 | **Org admin** — Sam Patel | Members, invitations, structure, reporting, audit, permission inspector | Confidential project content — admin is configuration power, not content access |
 
-![Permission inspector](docs/screenshots/16-admin-permission-inspector.png)
-![Reporting line editor](docs/screenshots/15-admin-reporting.png)
+![Permission inspector](docs/screenshots/midnight-edition/16-admin-permission-inspector.png)
+![Reporting line editor](docs/screenshots/midnight-edition/15-admin-reporting.png)
 
 ## System architecture
 
@@ -126,7 +146,7 @@ Details: [ARCHITECTURE](docs/ARCHITECTURE.md) · [DATABASE](docs/DATABASE.md) ·
 
 ## Technology stack
 
-**Frontend** Next.js 16 (App Router) · React 19 · TypeScript (strict) · Tailwind CSS 4 · Radix UI primitives in a shadcn-style component layer · React Flow (@xyflow/react) + ELK.js · TanStack Query & Table · Zustand · React Hook Form · Recharts · cmdk · Lucide · date-fns · Socket.IO client
+**Frontend** Next.js 16 (App Router) · React 19 · TypeScript (strict) · Tailwind CSS 4 (design tokens) · Radix UI primitives in a shadcn-style component layer · Motion · React Flow (@xyflow/react) + ELK.js · TanStack Query & Table · Zustand · React Hook Form · Recharts · cmdk · Lucide · Geist & Space Grotesk (self-hosted) · date-fns · Socket.IO client
 **Backend** Node.js 22+ · NestJS 11 · Prisma 6 · PostgreSQL 16 (RLS, full-text search) · Redis 7 · BullMQ · Socket.IO · Zod · Argon2id · Pino · prom-client · Swagger (dev)
 **Shared** `@workmesh/core` — pure TypeScript policy engine, graph algorithms, state machines, health and brief logic used by API and web
 **Quality** Vitest · Jest + Supertest · Playwright · ESLint · GitHub Actions · Gitleaks · pnpm audit · Docker
