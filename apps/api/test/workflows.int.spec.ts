@@ -203,6 +203,45 @@ describe("critical workflows", () => {
     await anon.post("/api/auth/login").send({ email: EMAIL.zoe, password: "zoe-new-password-1" }).expect(200);
   });
 
+  it("a new company registers and sets up structure, goals, a linked project, milestones and contributors", async () => {
+    const run = Date.now().toString(36);
+    const owner = request.agent(app.getHttpServer());
+    const origin = process.env.WEB_ORIGIN ?? "http://localhost:3002";
+    const bad = await owner.post("/api/auth/register").set("Origin", origin).send({ name: "Ada Founder", email: `ada-${run}@acme.example`, password: "short", organizationName: "Acme", slug: "Bad Slug!" });
+    expect(bad.status).toBe(400);
+    const reg = await owner.post("/api/auth/register").set("Origin", origin).send({ name: "Ada Founder", email: `ada-${run}@acme.example`, password: "acme-password-1", organizationName: "Acme Robotics", slug: `acme-${run}` }).expect(201);
+    expect((await request(app.getHttpServer()).post("/api/auth/register").set("Origin", origin).send({ name: "Xi Other", email: `x-${run}@acme.example`, password: "acme-password-1", organizationName: "Other", slug: `acme-${run}` })).body.code).toBe("SLUG_TAKEN");
+    const csrf = /wm_csrf=([^;]+)/.exec(([] as string[]).concat(reg.headers["set-cookie"] ?? []).join(";"))![1]!;
+    const post = (url: string, body: object) => owner.post(url).set("X-CSRF-Token", csrf).set("Origin", origin).send(body);
+
+    const me = await owner.get("/api/auth/me").expect(200);
+    expect(me.body.active).toMatchObject({ role: "OWNER", organization: { name: "Acme Robotics" } });
+    expect(me.body.active.workspaces).toEqual(expect.arrayContaining(["employee", "leadership", "admin"]));
+
+    const dept = await post("/api/departments", { name: "Engineering" }).expect(201);
+    const team = await post("/api/teams", { name: "Firmware", departmentId: dept.body.id, responsibilities: ["Motor control"] }).expect(201);
+    const goal = await post("/api/goals", { title: "Ship the v1 robot" }).expect(201);
+    const init = await post("/api/initiatives", { title: "Firmware platform", goalId: goal.body.id }).expect(201);
+    const project = await post("/api/projects", { name: "Motor controller", initiativeId: init.body.id, owningTeamId: team.body.id }).expect(201);
+    await post(`/api/projects/${project.body.id}/milestones`, { title: "Prototype", isCritical: true, dueDate: new Date(Date.now() + 10 * 86400000).toISOString() }).expect(201);
+
+    const invite = await post("/api/admin/invitations", { email: `bo-${run}@acme.example`, teamId: team.body.id }).expect(201);
+    const token = new URL(invite.body.devLink).pathname.split("/").pop()!;
+    const bo = request.agent(app.getHttpServer());
+    await bo.post("/api/invitations/accept").send({ token, name: "Bo Engineer", password: "bo-password-12" }).expect(200);
+    const boId = (await bo.get("/api/auth/me").expect(200)).body.active.membershipId;
+    await owner.put(`/api/projects/${project.body.id}/members/${boId}`).set("X-CSRF-Token", csrf).set("Origin", origin).send({ role: "CONTRIBUTOR" }).expect(200);
+
+    const tree = await owner.get("/api/goals").expect(200);
+    const g = tree.body.goals.find((x: { id: string }) => x.id === goal.body.id);
+    expect(g.initiatives[0].projects[0]).toMatchObject({ name: "Motor controller", access: "details" });
+    const detail = await bo.get(`/api/projects/${project.body.id}`).expect(200);
+    expect(detail.body.members.map((m: { name: string }) => m.name)).toEqual(expect.arrayContaining(["Ada Founder", "Bo Engineer"]));
+    expect(detail.body.milestoneList[0]).toMatchObject({ title: "Prototype", isCritical: true });
+    // The new tenant is isolated from the demo tenants.
+    expect((await bo.get(`/api/projects/${P().PGW}`)).status).toBe(404);
+  });
+
   it("neutralizes spreadsheet formula injection in CSV exports", async () => {
     await c.priya!.post("/api/projects", { name: "=HYPERLINK(\"http://evil.example\")", visibility: "ORG", owningTeamId: seed.northstar.teams.pm }).expect(201);
     const csv = await c.priya!.get("/api/projects/export.csv").expect(200);
