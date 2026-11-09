@@ -19,6 +19,7 @@ import { PageHeader } from "@/components/ui/card";
 import { ErrorState } from "@/components/ui/feedback";
 import { Input, Segmented, Select } from "@/components/ui/form";
 import { useApi } from "@/lib/hooks";
+import { useUi } from "@/lib/store";
 import type { Graph, GraphNode } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -84,6 +85,7 @@ function MapCanvas() {
   const router = useRouter();
   const flow = useReactFlow();
   const reduceMotion = useReducedMotion();
+  const markTour = useUi((s) => s.markTour);
   const [mode, setMode] = useState<Mode>((params.get("mode") as Mode) === "work" ? "work" : "people");
   const [view, setView] = useState<"graph" | "list">("graph");
   const [direction, setDirection] = useState<LayoutKind>((params.get("mode") as Mode) === "work" ? "down" : "right");
@@ -98,6 +100,8 @@ function MapCanvas() {
   const [history, setHistory] = useState<GraphNode[]>([]);
   const [showTeams, setShowTeams] = useState(false);
   const [laidOut, setLaidOut] = useState<{ nodes: Node<MapNodeData>[]; edges: Edge[] }>({ nodes: [], edges: [] });
+
+  useEffect(() => markTour(mode === "work" ? "work" : "map"), [mode, markTour]);
 
   const peopleUrl = `/graph/people?expand=${expanded.join(",")}${focus ? `&focus=${focus}` : ""}`;
   const workUrl = `/graph/work?expand=${expandedProjects.join(",")}`;

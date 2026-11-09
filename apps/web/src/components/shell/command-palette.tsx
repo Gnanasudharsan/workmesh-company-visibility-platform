@@ -49,7 +49,10 @@ function Row({ go, href, label, kind, icon, sub }: { go: (href: string, label: s
 
 /** Global search. Results are authorized on the server before they are returned. */
 export function CommandPalette() {
-  const { paletteOpen, setPaletteOpen, recent, pushRecent } = useUi();
+  const { paletteOpen, setPaletteOpen, recent, pushRecent, markTour } = useUi();
+  useEffect(() => {
+    if (paletteOpen) markTour("search");
+  }, [paletteOpen, markTour]);
   const [q, setQ] = useState("");
   const router = useRouter();
   const debounced = useDebounced(q.trim());

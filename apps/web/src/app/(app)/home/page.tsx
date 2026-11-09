@@ -4,6 +4,7 @@ import { label } from "@workmesh/core";
 import { ArrowRight, BookUser, CalendarClock, CheckSquare, Compass, Flag, Map as MapIcon, MessageSquarePlus, Network, OctagonAlert, Sparkles, Target, Users } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
+import { GettingStarted } from "@/components/midnight/getting-started";
 import { ContributionMap, type CMColumn } from "@/components/midnight/contribution-map";
 import { HeroMetric, MidnightHero, QuickAction } from "@/components/midnight/hero";
 import { ProgressRing } from "@/components/midnight/viz";
@@ -135,6 +136,7 @@ export default function HomePage() {
       {error ? <div className="mt-5"><ErrorState error={error} onRetry={refetch} /></div> : isLoading || !data ? <LoadingCards count={4} className="mt-5 lg:grid-cols-2" /> : (
         <Reveal className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
           <div className="min-w-0 space-y-5">
+            <Reveal.Item><GettingStarted hasUpdate={!!data.lastUpdate} /></Reveal.Item>
             {data.drafts.length > 0 && (
               <Reveal.Item>
                 <Link href="/my-work?tab=updates" className="flex items-center justify-between rounded-[12px] border border-violet/20 bg-violet-soft/60 px-4 py-2.5 text-[12.5px] text-ink-soft hover:border-violet/40">

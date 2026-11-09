@@ -12,6 +12,8 @@ interface UiState {
   closeComposer: () => void;
   paletteOpen: boolean;
   setPaletteOpen: (o: boolean) => void;
+  tour: Record<string, boolean>;
+  markTour: (step: string) => void;
   sidebarCollapsed: boolean;
   toggleSidebar: () => void;
   mobileNavOpen: boolean;
@@ -33,6 +35,8 @@ export const useUi = create<UiState>()(
       closeComposer: () => set({ composer: { open: false } }),
       paletteOpen: false,
       setPaletteOpen: (paletteOpen) => set({ paletteOpen }),
+      tour: {},
+      markTour: (step) => set((s) => (s.tour[step] ? s : { tour: { ...s.tour, [step]: true } })),
       sidebarCollapsed: false,
       toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
       mobileNavOpen: false,
@@ -42,7 +46,7 @@ export const useUi = create<UiState>()(
       recent: [],
       pushRecent: (r) => set((s) => ({ recent: [r, ...s.recent.filter((x) => x.href !== r.href)].slice(0, 8) })),
     }),
-    { name: "workmesh-ui", partialize: (s) => ({ workspace: s.workspace, recent: s.recent, sidebarCollapsed: s.sidebarCollapsed }) },
+    { name: "workmesh-ui", partialize: (s) => ({ workspace: s.workspace, recent: s.recent, sidebarCollapsed: s.sidebarCollapsed, tour: s.tour }) },
   ),
 );
 
