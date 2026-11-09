@@ -4,9 +4,10 @@ import { apiGet, login, USERS } from "./helpers";
 
 /**
  * Real screenshots of the running app with the SYNTHETIC Northstar Labs demo data.
- * Run with `make screenshots` (reseeds first). Output: docs/screenshots/*.png
+ * Run with `make screenshots` (reseeds first). Output: docs/screenshots/<SHOT_DIR>/*.png
+ * (default: midnight-edition; the pre-redesign baseline lives in before-redesign).
  */
-const OUT = resolve(__dirname, "../../../docs/screenshots");
+const OUT = resolve(__dirname, "../../../docs/screenshots", process.env.SHOT_DIR ?? "midnight-edition");
 const shot = async (page: Page, name: string, opts: { fullPage?: boolean } = {}) => {
   await page.waitForLoadState("networkidle");
   await page.waitForTimeout(600); // let layout animations settle
@@ -102,6 +103,35 @@ test("administration", async ({ page }) => {
   await page.getByRole("button", { name: "Inspect" }).click();
   await expect(page.getByText("project.viewDetails")).toBeVisible();
   await shot(page, "16-admin-permission-inspector");
+});
+
+test("directory, meetings and admin overview", async ({ page }) => {
+  await login(page, USERS.sam);
+  await page.goto("/directory?tab=teams");
+  await shot(page, "18-directory");
+  await page.goto("/meetings");
+  await shot(page, "19-meetings");
+  await page.goto("/admin");
+  await shot(page, "20-admin-overview");
+});
+
+test("tablet dashboard", async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 768, height: 1024 }, deviceScaleFactor: 2 });
+  const page = await context.newPage();
+  await login(page, USERS.daniel);
+  await page.goto("/team-pulse");
+  await shot(page, "21-tablet-team-pulse");
+  await context.close();
+});
+
+test("mobile navigation", async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
+  const page = await context.newPage();
+  await login(page, USERS.maya);
+  await page.getByRole("button", { name: "Open navigation" }).click();
+  await page.waitForTimeout(400);
+  await shot(page, "22-mobile-navigation");
+  await context.close();
 });
 
 test("mobile dashboard", async ({ browser }) => {
