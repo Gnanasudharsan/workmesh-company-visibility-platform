@@ -210,9 +210,9 @@ export default function LeadershipPage() {
 
 /** Places real milestone due dates on a time axis from today; overdue items pin to the left edge. */
 function MilestoneTimeline({ items }: { items: Leadership["criticalMilestones"] }) {
+  const [now] = useState(() => Date.now());
   const dated = items.filter((m) => m.dueDate).sort((a, b) => +new Date(a.dueDate!) - +new Date(b.dueDate!));
   if (dated.length === 0) return <p className="text-[13px] text-muted">No open critical milestones with a due date.</p>;
-  const now = Date.now();
   const last = Math.max(+new Date(dated[dated.length - 1]!.dueDate!), now + 14 * 864e5);
   const span = last - now;
   const pct = (d: string) => Math.max(0, Math.min(100, ((+new Date(d) - now) / span) * 100));
