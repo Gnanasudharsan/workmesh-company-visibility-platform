@@ -60,7 +60,7 @@ test("Journey B — progress update with a blocker reaches the right people only
   // Manager sees it in Team Pulse.
   await login(page, USERS.daniel);
   await page.goto("/team-pulse");
-  const row = page.locator("tr", { hasText: "Maya Chen" });
+  const row = page.getByRole("article", { name: "Maya Chen" });
   await expect(row.getByText("E2E: webhook retries under load")).toBeVisible();
   await expect(row.getByText("E2E: staging webhook endpoint rejects signatures")).toBeVisible();
 
@@ -84,7 +84,7 @@ test("Journey C — manager assigns an owner and a follow-up the employee can se
   await expect(page.getByText("assigned Hannah Lee")).toBeVisible();
 
   await page.goto("/team-pulse");
-  await page.locator("tr", { hasText: "Maya Chen" }).getByRole("button", { name: "+ Action" }).click();
+  await page.getByRole("article", { name: "Maya Chen" }).getByRole("button", { name: "+ Action" }).click();
   await page.getByLabel("What needs to happen?").fill("E2E: pair with Hannah on webhook signatures");
   await page.getByRole("button", { name: "Assign" }).click();
   await expect(page.getByText("Action item assigned")).toBeVisible();
