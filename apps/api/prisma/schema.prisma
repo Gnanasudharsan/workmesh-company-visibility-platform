@@ -1,0 +1,982 @@
+// WorkMesh relational model.
+//
+// Tenancy: every tenant-owned table carries `organizationId` and is protected by a
+// PostgreSQL Row-Level Security policy (see migrations/*_rls). Global tables (User, Session,
+// PasswordResetToken, MailMessage) are only accessed through the system client.
+//
+// "Member" throughout the model means Membership: a person *within one organization*.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────── Enums ───────────────────────────────
+
+enum OrgRole {
+  OWNER
+  ADMIN
+  EXECUTIVE
+  MEMBER
+}
+
+enum MembershipStatus {
+  ACTIVE
+  DEACTIVATED
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+  EXPIRED
+}
+
+enum TeamRole {
+  MEMBER
+  LEAD
+}
+
+enum ReportingType {
+  PRIMARY
+  DOTTED
+}
+
+enum ResourceVisibility {
+  ORG
+  TEAM
+  PROJECT_MEMBERS
+  RESTRICTED
+}
+
+enum UpdateVisibility {
+  PRIVATE
+  MANAGER
+  PROJECT
+  TEAM
+  ORG
+}
+
+enum GoalStatus {
+  DRAFT
+  ACTIVE
+  ACHIEVED
+  MISSED
+  ARCHIVED
+}
+
+enum ProjectStatus {
+  PROPOSED
+  PLANNED
+  IN_PROGRESS
+  IN_REVIEW
+  BLOCKED
+  COMPLETED
+  CANCELLED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum ProjectRole {
+  LEAD
+  CONTRIBUTOR
+  VIEWER
+}
+
+enum GrantLevel {
+  SUMMARY
+  DETAILS
+}
+
+enum GrantResource {
+  PROJECT
+  GOAL
+  INITIATIVE
+}
+
+enum MilestoneStatus {
+  PLANNED
+  IN_PROGRESS
+  DONE
+  CANCELLED
+}
+
+enum WorkItemStatus {
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  BLOCKED
+  DONE
+  CANCELLED
+}
+
+enum UpdateStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum UpdateStage {
+  PLANNING
+  DEVELOPMENT
+  TESTING
+  REVIEW
+  BLOCKED
+  COMPLETED
+}
+
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum BlockerState {
+  OPEN
+  ASSIGNED
+  INVESTIGATING
+  WAITING
+  RESOLVED
+  REOPENED
+}
+
+enum DependencyState {
+  OPEN
+  AT_RISK
+  BLOCKED
+  RESOLVED
+}
+
+enum MeetingVisibility {
+  PARTICIPANTS
+  TEAM
+  ORG
+}
+
+enum MeetingStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum Recurrence {
+  NONE
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+}
+
+enum DecisionStatus {
+  PENDING
+  DECIDED
+  SUPERSEDED
+}
+
+enum ActionStatus {
+  OPEN
+  DONE
+  CANCELLED
+}
+
+enum ChangeEntity {
+  PROJECT
+  MILESTONE
+  WORK_ITEM
+}
+
+enum CommentEntity {
+  UPDATE
+  BLOCKER
+  PROJECT
+}
+
+// ───────────────────────── Global (non-tenant) ─────────────────────────
+
+model User {
+  id           String    @id @default(uuid()) @db.Uuid
+  email        String    @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime  @default(now())
+  lastLoginAt  DateTime?
+
+  sessions       Session[]
+  memberships    Membership[]
+  passwordResets PasswordResetToken[]
+
+  @@map("users")
+}
+
+model Session {
+  id                   String    @id @default(uuid()) @db.Uuid
+  tokenHash            String    @unique
+  userId               String    @db.Uuid
+  activeOrganizationId String?   @db.Uuid
+  csrfToken            String
+  createdAt            DateTime  @default(now())
+  lastSeenAt           DateTime  @default(now())
+  expiresAt            DateTime
+  revokedAt            DateTime?
+  userAgent            String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_reset_tokens")
+}
+
+/// Local development mailbox. Replaces a paid email provider; viewable at /dev/mailbox when DEMO_MODE=true.
+model MailMessage {
+  id        String   @id @default(uuid()) @db.Uuid
+  to        String
+  subject   String
+  text      String
+  link      String?
+  createdAt DateTime @default(now())
+
+  @@index([to, createdAt])
+  @@map("mail_messages")
+}
+
+// ───────────────────────────── Tenancy ─────────────────────────────
+
+model Organization {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String
+  slug         String   @unique
+  /// Monotonic counter bumped on every change that affects authorization (memberships,
+  /// teams, reporting, project membership/visibility, grants, delegations). Used to
+  /// invalidate cached AuthContexts immediately.
+  authzVersion Int      @default(1)
+  /// Days without a shared update before work is shown as "No recent update".
+  staleAfterDays Int    @default(7)
+  /// Escalate unowned high/critical blockers to the reporter's manager after N hours (null = off).
+  escalateBlockersAfterHours Int?
+  isDemo       Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  memberships Membership[]
+
+  @@map("organizations")
+}
+
+model Membership {
+  id             String           @id @default(uuid()) @db.Uuid
+  organizationId String           @db.Uuid
+  userId         String           @db.Uuid
+  role           OrgRole          @default(MEMBER)
+  status         MembershipStatus @default(ACTIVE)
+  joinedAt       DateTime         @default(now())
+  deactivatedAt  DateTime?
+  onboardedAt    DateTime?
+
+  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profile      EmployeeProfile?
+
+  teamMemberships   TeamMembership[]
+  managerLines      ReportingLine[]  @relation("ReportLines")
+  reportLines       ReportingLine[]  @relation("ManagerLines")
+  projectMembers    ProjectMember[]
+  ledProjects       Project[]        @relation("ProjectLead")
+  headedDepartments Department[]     @relation("DepartmentHead")
+
+  @@unique([organizationId, userId])
+  @@index([organizationId, status])
+  @@map("memberships")
+}
+
+model Position {
+  id             String  @id @default(uuid()) @db.Uuid
+  organizationId String  @db.Uuid
+  title          String
+  level          String?
+
+  profiles EmployeeProfile[]
+
+  @@unique([organizationId, title])
+  @@map("positions")
+}
+
+model EmployeeProfile {
+  id               String   @id @default(uuid()) @db.Uuid
+  organizationId   String   @db.Uuid
+  membershipId     String   @unique @db.Uuid
+  displayName      String
+  workEmail        String
+  title            String
+  positionId       String?  @db.Uuid
+  bio              String?
+  location         String?
+  timezone         String?
+  responsibilities String[] @default([])
+  contact          String?
+  avatarHue        Int      @default(210)
+
+  membership Membership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  position   Position?  @relation(fields: [positionId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@map("employee_profiles")
+}
+
+model Invitation {
+  id             String           @id @default(uuid()) @db.Uuid
+  organizationId String           @db.Uuid
+  email          String
+  role           OrgRole          @default(MEMBER)
+  title          String?
+  teamId         String?          @db.Uuid
+  managerId      String?          @db.Uuid
+  tokenHash      String           @unique
+  status         InvitationStatus @default(PENDING)
+  invitedById    String           @db.Uuid
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+  sendCount      Int              @default(1)
+  lastSentAt     DateTime         @default(now())
+  createdAt      DateTime         @default(now())
+
+  @@index([organizationId, status])
+  // A partial unique index (one PENDING invite per org+email) is created in SQL.
+  @@map("invitations")
+}
+
+// ─────────────────────────── Organization ───────────────────────────
+
+model Department {
+  id             String  @id @default(uuid()) @db.Uuid
+  organizationId String  @db.Uuid
+  name           String
+  slug           String
+  description    String?
+  headId         String? @db.Uuid
+  color          String  @default("#2563EB")
+
+  head  Membership? @relation("DepartmentHead", fields: [headId], references: [id], onDelete: SetNull)
+  teams Team[]
+
+  @@unique([organizationId, slug])
+  @@map("departments")
+}
+
+model Team {
+  id               String   @id @default(uuid()) @db.Uuid
+  organizationId   String   @db.Uuid
+  departmentId     String?  @db.Uuid
+  name             String
+  slug             String
+  mission          String?
+  responsibilities String[] @default([])
+  contact          String?
+  docsUrl          String?
+
+  department Department?      @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  members    TeamMembership[]
+  projects   Project[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId, departmentId])
+  @@map("teams")
+}
+
+model TeamMembership {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String    @db.Uuid
+  teamId         String    @db.Uuid
+  membershipId   String    @db.Uuid
+  role           TeamRole  @default(MEMBER)
+  isPrimary      Boolean   @default(true)
+  startedAt      DateTime  @default(now())
+  endedAt        DateTime?
+
+  team       Team       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  membership Membership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, membershipId])
+  @@index([teamId])
+  @@map("team_memberships")
+}
+
+/// Employment reporting. History is preserved: a reorg sets `endedAt` and inserts a new line.
+/// A partial unique index guarantees at most one active PRIMARY manager per person.
+model ReportingLine {
+  id             String        @id @default(uuid()) @db.Uuid
+  organizationId String        @db.Uuid
+  reportId       String        @db.Uuid
+  managerId      String        @db.Uuid
+  type           ReportingType @default(PRIMARY)
+  startedAt      DateTime      @default(now())
+  endedAt        DateTime?
+  reason         String?
+  createdById    String?       @db.Uuid
+
+  report  Membership @relation("ReportLines", fields: [reportId], references: [id], onDelete: Cascade)
+  manager Membership @relation("ManagerLines", fields: [managerId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, endedAt])
+  @@index([managerId])
+  @@index([reportId])
+  @@map("reporting_lines")
+}
+
+/// Temporary delegated management (e.g. a manager on leave). Grants the delegate the
+/// delegator's reporting line until `expiresAt` or revocation.
+model Delegation {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String    @db.Uuid
+  delegatorId    String    @db.Uuid
+  delegateId     String    @db.Uuid
+  reason         String?
+  startsAt       DateTime  @default(now())
+  expiresAt      DateTime
+  revokedAt      DateTime?
+  createdById    String    @db.Uuid
+  createdAt      DateTime  @default(now())
+
+  @@index([organizationId, delegateId])
+  @@map("delegations")
+}
+
+// ─────────────────────────── Goals & work ───────────────────────────
+
+model CompanyGoal {
+  id             String             @id @default(uuid()) @db.Uuid
+  organizationId String             @db.Uuid
+  title          String
+  description    String?
+  ownerId        String?            @db.Uuid
+  status         GoalStatus         @default(ACTIVE)
+  priority       Priority           @default(MEDIUM)
+  period         String?
+  startDate      DateTime?
+  targetDate     DateTime?
+  visibility     ResourceVisibility @default(ORG)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  initiatives Initiative[]
+
+  @@index([organizationId])
+  @@map("company_goals")
+}
+
+model Initiative {
+  id             String             @id @default(uuid()) @db.Uuid
+  organizationId String             @db.Uuid
+  goalId         String?            @db.Uuid
+  title          String
+  description    String?
+  ownerId        String?            @db.Uuid
+  status         GoalStatus         @default(ACTIVE)
+  priority       Priority           @default(MEDIUM)
+  startDate      DateTime?
+  targetDate     DateTime?
+  visibility     ResourceVisibility @default(ORG)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  goal     CompanyGoal? @relation(fields: [goalId], references: [id], onDelete: SetNull)
+  projects Project[]
+
+  @@index([organizationId, goalId])
+  @@map("initiatives")
+}
+
+model Project {
+  id               String             @id @default(uuid()) @db.Uuid
+  organizationId   String             @db.Uuid
+  initiativeId     String?            @db.Uuid
+  owningTeamId     String?            @db.Uuid
+  leadId           String?            @db.Uuid
+  key              String
+  name             String
+  summary          String?
+  description      String?
+  status           ProjectStatus      @default(PROPOSED)
+  priority         Priority           @default(MEDIUM)
+  startDate        DateTime?
+  targetDate       DateTime?
+  visibility       ResourceVisibility @default(ORG)
+  /// For TEAM / PROJECT_MEMBERS projects: may people outside see the limited summary?
+  discoverable     Boolean            @default(true)
+  reportedProgress Int?
+  reportedAt       DateTime?
+  reportedById     String?            @db.Uuid
+  /// Optimistic concurrency token. Every update must send the version it read.
+  version          Int                @default(1)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  initiative Initiative?     @relation(fields: [initiativeId], references: [id], onDelete: SetNull)
+  owningTeam Team?           @relation(fields: [owningTeamId], references: [id], onDelete: SetNull)
+  lead       Membership?     @relation("ProjectLead", fields: [leadId], references: [id], onDelete: SetNull)
+  members    ProjectMember[]
+  milestones Milestone[]
+  workItems  WorkItem[]
+
+  @@unique([organizationId, key])
+  @@index([organizationId, status])
+  @@index([organizationId, owningTeamId])
+  @@map("projects")
+}
+
+model ProjectMember {
+  id             String      @id @default(uuid()) @db.Uuid
+  organizationId String      @db.Uuid
+  projectId      String      @db.Uuid
+  membershipId   String      @db.Uuid
+  role           ProjectRole @default(CONTRIBUTOR)
+  addedAt        DateTime    @default(now())
+
+  project    Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  membership Membership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, membershipId])
+  @@index([organizationId, membershipId])
+  @@map("project_members")
+}
+
+model AccessGrant {
+  id             String        @id @default(uuid()) @db.Uuid
+  organizationId String        @db.Uuid
+  resourceType   GrantResource
+  resourceId     String        @db.Uuid
+  granteeId      String        @db.Uuid
+  level          GrantLevel    @default(SUMMARY)
+  reason         String?
+  grantedById    String        @db.Uuid
+  expiresAt      DateTime?
+  revokedAt      DateTime?
+  createdAt      DateTime      @default(now())
+
+  @@index([organizationId, granteeId])
+  @@index([resourceType, resourceId])
+  @@map("access_grants")
+}
+
+model Milestone {
+  id             String          @id @default(uuid()) @db.Uuid
+  organizationId String          @db.Uuid
+  projectId      String          @db.Uuid
+  title          String
+  description    String?
+  ownerId        String?         @db.Uuid
+  status         MilestoneStatus @default(PLANNED)
+  isCritical     Boolean         @default(false)
+  dueDate        DateTime?
+  completedAt    DateTime?
+  sortOrder      Int             @default(0)
+  version        Int             @default(1)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  workItems WorkItem[]
+
+  @@index([organizationId, projectId])
+  @@index([organizationId, dueDate])
+  @@map("milestones")
+}
+
+model WorkItem {
+  id             String         @id @default(uuid()) @db.Uuid
+  organizationId String         @db.Uuid
+  projectId      String         @db.Uuid
+  milestoneId    String?        @db.Uuid
+  title          String
+  description    String?
+  status         WorkItemStatus @default(TODO)
+  priority       Priority       @default(MEDIUM)
+  assigneeId     String?        @db.Uuid
+  reviewerId     String?        @db.Uuid
+  dueDate        DateTime?
+  completedAt    DateTime?
+  sortOrder      Int            @default(0)
+  version        Int            @default(1)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestone Milestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, projectId, status])
+  @@index([organizationId, assigneeId])
+  @@map("work_items")
+}
+
+/// Append-only field-level change history for projects, milestones and work items.
+/// Powers "what changed since…" in meeting briefs and the activity feed.
+model ChangeEvent {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @db.Uuid
+  entityType     ChangeEntity
+  entityId       String       @db.Uuid
+  projectId      String       @db.Uuid
+  field          String
+  fromValue      String?
+  toValue        String?
+  actorId        String?      @db.Uuid
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, projectId, createdAt])
+  @@index([entityType, entityId])
+  @@map("change_events")
+}
+
+// ───────────────────────── Updates & blockers ─────────────────────────
+
+model ProgressUpdate {
+  id             String           @id @default(uuid()) @db.Uuid
+  organizationId String           @db.Uuid
+  authorId       String           @db.Uuid
+  projectId      String?          @db.Uuid
+  milestoneId    String?          @db.Uuid
+  workItemId     String?          @db.Uuid
+  status         UpdateStatus     @default(DRAFT)
+  visibility     UpdateVisibility @default(MANAGER)
+  stage          UpdateStage      @default(DEVELOPMENT)
+  currentFocus   String
+  completed      String?
+  nextSteps      String?
+  helpNeeded     String?
+  helpFromId     String?          @db.Uuid
+  /// Optional author-reported confidence in the next milestone (1–5).
+  confidence     Int?
+  publishedAt    DateTime?
+  editedAt       DateTime?
+  version        Int              @default(1)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  revisions UpdateRevision[]
+  acks      UpdateAcknowledgement[]
+
+  @@index([organizationId, authorId, publishedAt])
+  @@index([organizationId, projectId, publishedAt])
+  @@index([organizationId, status, publishedAt])
+  @@map("progress_updates")
+}
+
+/// Snapshot of a published update before each edit (edit history).
+model UpdateRevision {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @db.Uuid
+  updateId       String   @db.Uuid
+  editorId       String   @db.Uuid
+  snapshot       Json
+  createdAt      DateTime @default(now())
+
+  update ProgressUpdate @relation(fields: [updateId], references: [id], onDelete: Cascade)
+
+  @@index([updateId])
+  @@map("update_revisions")
+}
+
+model UpdateAcknowledgement {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @db.Uuid
+  updateId       String   @db.Uuid
+  membershipId   String   @db.Uuid
+  createdAt      DateTime @default(now())
+
+  update ProgressUpdate @relation(fields: [updateId], references: [id], onDelete: Cascade)
+
+  @@unique([updateId, membershipId])
+  @@map("update_acknowledgements")
+}
+
+model Comment {
+  id             String        @id @default(uuid()) @db.Uuid
+  organizationId String        @db.Uuid
+  entityType     CommentEntity
+  entityId       String        @db.Uuid
+  authorId       String        @db.Uuid
+  body           String
+  createdAt      DateTime      @default(now())
+
+  @@index([organizationId, entityType, entityId])
+  @@map("comments")
+}
+
+model Blocker {
+  id              String           @id @default(uuid()) @db.Uuid
+  organizationId  String           @db.Uuid
+  title           String
+  description     String?
+  projectId       String?          @db.Uuid
+  milestoneId     String?          @db.Uuid
+  workItemId      String?          @db.Uuid
+  updateId        String?          @db.Uuid
+  reporterId      String           @db.Uuid
+  ownerId         String?          @db.Uuid
+  severity        Severity         @default(MEDIUM)
+  state           BlockerState     @default(OPEN)
+  visibility      UpdateVisibility @default(PROJECT)
+  targetDate      DateTime?
+  resolutionNotes String?
+  resolvedAt      DateTime?
+  escalatedAt     DateTime?
+  version         Int              @default(1)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  events BlockerEvent[]
+
+  @@index([organizationId, state])
+  @@index([organizationId, projectId])
+  @@index([organizationId, ownerId])
+  @@index([organizationId, reporterId])
+  @@map("blockers")
+}
+
+model BlockerEvent {
+  id             String        @id @default(uuid()) @db.Uuid
+  organizationId String        @db.Uuid
+  blockerId      String        @db.Uuid
+  actorId        String        @db.Uuid
+  fromState      BlockerState?
+  toState        BlockerState?
+  fromOwnerId    String?       @db.Uuid
+  toOwnerId      String?       @db.Uuid
+  note           String?
+  createdAt      DateTime      @default(now())
+
+  blocker Blocker @relation(fields: [blockerId], references: [id], onDelete: Cascade)
+
+  @@index([blockerId, createdAt])
+  @@map("blocker_events")
+}
+
+model Dependency {
+  id                    String          @id @default(uuid()) @db.Uuid
+  organizationId        String          @db.Uuid
+  upstreamProjectId     String          @db.Uuid
+  downstreamProjectId   String          @db.Uuid
+  upstreamMilestoneId   String?         @db.Uuid
+  downstreamMilestoneId String?         @db.Uuid
+  description           String
+  ownerId               String?         @db.Uuid
+  state                 DependencyState @default(OPEN)
+  isCritical            Boolean         @default(false)
+  needBy                DateTime?
+  createdById           String          @db.Uuid
+  resolvedAt            DateTime?
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+
+  @@unique([upstreamProjectId, downstreamProjectId])
+  @@index([organizationId])
+  @@map("dependencies")
+}
+
+// ───────────────────────────── Meetings ─────────────────────────────
+
+model Meeting {
+  id             String            @id @default(uuid()) @db.Uuid
+  organizationId String            @db.Uuid
+  title          String
+  description    String?
+  organizerId    String            @db.Uuid
+  teamId         String?           @db.Uuid
+  scheduledAt    DateTime
+  durationMinutes Int              @default(30)
+  recurrence     Recurrence        @default(NONE)
+  seriesId       String?           @db.Uuid
+  visibility     MeetingVisibility @default(PARTICIPANTS)
+  status         MeetingStatus     @default(SCHEDULED)
+  /// Comparison baseline for the brief. Defaults to the previous meeting in the series.
+  compareFrom    DateTime?
+  notes          String?
+  briefGeneratedAt DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime          @default(now())
+
+  participants MeetingParticipant[]
+  projects     MeetingProject[]
+  agenda       AgendaItem[]
+  decisions    Decision[]
+  actionItems  ActionItem[]
+
+  @@index([organizationId, scheduledAt])
+  @@index([seriesId])
+  @@map("meetings")
+}
+
+model MeetingParticipant {
+  id             String @id @default(uuid()) @db.Uuid
+  organizationId String @db.Uuid
+  meetingId      String @db.Uuid
+  membershipId   String @db.Uuid
+
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+
+  @@unique([meetingId, membershipId])
+  @@index([organizationId, membershipId])
+  @@map("meeting_participants")
+}
+
+model MeetingProject {
+  id             String @id @default(uuid()) @db.Uuid
+  organizationId String @db.Uuid
+  meetingId      String @db.Uuid
+  projectId      String @db.Uuid
+
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+
+  @@unique([meetingId, projectId])
+  @@map("meeting_projects")
+}
+
+model AgendaItem {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @db.Uuid
+  meetingId      String   @db.Uuid
+  title          String
+  notes          String?
+  sourceType     String?
+  sourceId       String?  @db.Uuid
+  discussed      Boolean  @default(false)
+  sortOrder      Int      @default(0)
+  createdById    String   @db.Uuid
+  createdAt      DateTime @default(now())
+
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+
+  @@index([meetingId])
+  @@map("agenda_items")
+}
+
+model Decision {
+  id             String         @id @default(uuid()) @db.Uuid
+  organizationId String         @db.Uuid
+  meetingId      String?        @db.Uuid
+  projectId      String?        @db.Uuid
+  title          String
+  rationale      String?
+  status         DecisionStatus @default(PENDING)
+  ownerId        String?        @db.Uuid
+  decidedById    String?        @db.Uuid
+  decidedAt      DateTime?
+  createdById    String         @db.Uuid
+  createdAt      DateTime       @default(now())
+
+  meeting     Meeting?     @relation(fields: [meetingId], references: [id], onDelete: SetNull)
+  actionItems ActionItem[]
+
+  @@index([organizationId, status])
+  @@index([organizationId, projectId])
+  @@map("decisions")
+}
+
+model ActionItem {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @db.Uuid
+  meetingId      String?      @db.Uuid
+  decisionId     String?      @db.Uuid
+  projectId      String?      @db.Uuid
+  blockerId      String?      @db.Uuid
+  title          String
+  ownerId        String       @db.Uuid
+  dueDate        DateTime?
+  status         ActionStatus @default(OPEN)
+  createdById    String       @db.Uuid
+  completedAt    DateTime?
+  createdAt      DateTime     @default(now())
+
+  meeting  Meeting?  @relation(fields: [meetingId], references: [id], onDelete: SetNull)
+  decision Decision? @relation(fields: [decisionId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, ownerId, status])
+  @@index([meetingId])
+  @@map("action_items")
+}
+
+// ─────────────────────── Notifications & events ───────────────────────
+
+model Notification {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String    @db.Uuid
+  recipientId    String    @db.Uuid
+  type           String
+  title          String
+  body           String?
+  link           String?
+  entityType     String?
+  entityId       String?   @db.Uuid
+  actorId        String?   @db.Uuid
+  dedupeKey      String
+  readAt         DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@unique([recipientId, dedupeKey])
+  @@index([organizationId, recipientId, readAt, createdAt])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id             String  @id @default(uuid()) @db.Uuid
+  organizationId String  @db.Uuid
+  membershipId   String  @db.Uuid
+  type           String
+  inApp          Boolean @default(true)
+
+  @@unique([membershipId, type])
+  @@map("notification_preferences")
+}
+
+/// Transactional outbox: written in the same transaction as the domain change, delivered
+/// asynchronously by the worker (BullMQ). Guarantees no event is lost between commit and enqueue.
+model OutboxEvent {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String    @db.Uuid
+  type           String
+  payload        Json
+  correlationId  String?
+  attempts       Int       @default(0)
+  lastError      String?
+  processedAt    DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([processedAt, createdAt])
+  @@map("outbox_events")
+}
+
+model AuditEvent {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @db.Uuid
+  actorId        String?  @db.Uuid
+  action         String
+  resourceType   String
+  resourceId     String?
+  metadata       Json?
+  requestId      String?
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([organizationId, resourceType, resourceId])
+  @@map("audit_events")
+}
