@@ -11,6 +11,8 @@ const schema = z.object({
   DATABASE_URL: z.string().min(1),
   APP_DATABASE_URL: z.string().min(1),
   REDIS_URL: z.string().default("redis://localhost:56402"),
+  /** Namespaces queues and pub/sub channels (tests use a separate prefix). */
+  REDIS_PREFIX: z.string().default("wm"),
   WEB_ORIGIN: z.string().default("http://localhost:3002"),
   SESSION_TTL_HOURS: z.coerce.number().positive().default(72),
   COOKIE_SECURE: bool,

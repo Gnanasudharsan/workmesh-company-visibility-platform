@@ -23,7 +23,10 @@ export type NotificationType =
   | "DEADLINE_APPROACHING"
   | "MEETING_BRIEF_READY"
   | "UPDATE_REQUESTED"
-  | "DEPENDENCY_CHANGED";
+  | "DEPENDENCY_CHANGED"
+  | "PROJECT_STATUS_CHANGED"
+  | "WORK_ASSIGNED"
+  | "BLOCKER_ESCALATED";
 
 export const NOTIFICATION_TYPES: NotificationType[] = [
   "BLOCKER_ASSIGNED",
@@ -40,6 +43,9 @@ export const NOTIFICATION_TYPES: NotificationType[] = [
   "MEETING_BRIEF_READY",
   "UPDATE_REQUESTED",
   "DEPENDENCY_CHANGED",
+  "PROJECT_STATUS_CHANGED",
+  "WORK_ASSIGNED",
+  "BLOCKER_ESCALATED",
 ];
 
 /** Notification types that are bucketed (collapsed) per entity per time window. */
@@ -48,6 +54,7 @@ const BUCKET_MINUTES: Partial<Record<NotificationType, number>> = {
   MILESTONE_CHANGED: 60,
   UPDATE_PUBLISHED: 30,
   DEPENDENCY_CHANGED: 60,
+  PROJECT_STATUS_CHANGED: 60,
   DEADLINE_APPROACHING: 24 * 60,
 };
 

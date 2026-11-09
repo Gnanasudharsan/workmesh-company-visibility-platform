@@ -15,6 +15,7 @@ export class QueueService implements OnModuleDestroy {
   readonly connection = redisConnection();
   readonly queue = new Queue(EVENTS_QUEUE, {
     connection: this.connection,
+    prefix: config().REDIS_PREFIX,
     defaultJobOptions: {
       attempts: 5,
       backoff: { type: "exponential", delay: 1_000 },
