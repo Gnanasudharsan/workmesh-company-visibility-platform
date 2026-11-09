@@ -8,6 +8,7 @@ import "@xyflow/react/dist/style.css";
 import { ArrowLeft, ChevronsDownUp, ChevronsUpDown, GitBranch, List, Network, Search, Workflow, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useReducedMotion } from "motion/react";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { layout, NODE_SIZE, type LayoutKind } from "@/components/map/layout";
 import { NODE_TYPES, type MapNodeData } from "@/components/map/nodes";
@@ -24,16 +25,16 @@ import { cn } from "@/lib/utils";
 type Mode = "people" | "work";
 
 const EDGE_STYLE: Record<string, { stroke: string; dash?: string; width?: number; animated?: boolean; label?: string; layoutIgnore?: boolean }> = {
-  contains: { stroke: "#CBD5E1" },
-  belongs_to: { stroke: "#CBD5E1" },
-  leads: { stroke: "#93C5FD", width: 1.6 },
-  reports_to: { stroke: "#2563EB", width: 1.6 },
-  dotted_line: { stroke: "#7C3AED", dash: "5 5", layoutIgnore: true, label: "dotted line" },
-  contributes_to: { stroke: "#C4B5FD", width: 1.6 },
-  supports: { stroke: "#CBD5E1" },
-  owned_by: { stroke: "#E2E8F0", dash: "3 4", layoutIgnore: true },
-  milestone_of: { stroke: "#CBD5E1" },
-  depends_on: { stroke: "#D97706", width: 2, layoutIgnore: true },
+  contains: { stroke: "rgba(155,178,198,0.32)" },
+  belongs_to: { stroke: "rgba(155,178,198,0.32)" },
+  leads: { stroke: "rgba(55,213,195,0.55)", width: 1.6 },
+  reports_to: { stroke: "#37D5C3", width: 1.6 },
+  dotted_line: { stroke: "#9D87F5", dash: "5 5", layoutIgnore: true, label: "dotted line" },
+  contributes_to: { stroke: "rgba(157,135,245,0.75)", width: 1.6 },
+  supports: { stroke: "rgba(155,178,198,0.38)" },
+  owned_by: { stroke: "rgba(155,178,198,0.22)", dash: "3 4", layoutIgnore: true },
+  milestone_of: { stroke: "rgba(155,178,198,0.32)" },
+  depends_on: { stroke: "#F4AD69", width: 2, layoutIgnore: true },
 };
 
 function toFlow(graph: Graph, mode: Mode, direction: LayoutKind, hideTeamsInWork: boolean, openDepartments: Set<string>) {
@@ -59,7 +60,7 @@ function toFlow(graph: Graph, mode: Mode, direction: LayoutKind, hideTeamsInWork
     .map((e) => {
       const s = EDGE_STYLE[e.type] ?? EDGE_STYLE.contains!;
       const depState = (e.data?.state as string | undefined) ?? "";
-      const stroke = e.type === "depends_on" ? (depState === "BLOCKED" ? "#DC2626" : depState === "AT_RISK" ? "#D97706" : "#0891B2") : s.stroke;
+      const stroke = e.type === "depends_on" ? (depState === "BLOCKED" ? "#F07167" : depState === "AT_RISK" ? "#F4AD69" : "#5FB7E8") : s.stroke;
       return {
         id: e.id,
         source: e.source,
@@ -68,7 +69,7 @@ function toFlow(graph: Graph, mode: Mode, direction: LayoutKind, hideTeamsInWork
         animated: e.type === "depends_on" && depState === "BLOCKED",
         label: e.type === "depends_on" ? `${depState === "BLOCKED" ? "blocked" : depState === "AT_RISK" ? "at risk" : "depends on"}` : s.label,
         labelStyle: { fontSize: 10.5, fill: stroke, fontWeight: 600 },
-        labelBgStyle: { fill: "#fff" },
+        labelBgStyle: { fill: "#091B2D" },
         labelBgPadding: [4, 2] as [number, number],
         style: { stroke, strokeWidth: s.width ?? 1.3, strokeDasharray: s.dash },
         markerEnd: e.type === "depends_on" || e.type === "reports_to" ? { type: MarkerType.ArrowClosed, color: stroke, width: 16, height: 16 } : undefined,
@@ -82,6 +83,7 @@ function MapCanvas() {
   const params = useSearchParams();
   const router = useRouter();
   const flow = useReactFlow();
+  const reduceMotion = useReducedMotion();
   const [mode, setMode] = useState<Mode>((params.get("mode") as Mode) === "work" ? "work" : "people");
   const [view, setView] = useState<"graph" | "list">("graph");
   const [direction, setDirection] = useState<LayoutKind>((params.get("mode") as Mode) === "work" ? "down" : "right");
@@ -126,12 +128,12 @@ function MapCanvas() {
     void layout(nodes, edges, direction).then((positioned) => {
       if (cancelled) return;
       setLaidOut({ nodes: positioned, edges });
-      requestAnimationFrame(() => flow.fitView({ padding: 0.15, duration: 400, maxZoom: 1.1 }));
+      requestAnimationFrame(() => flow.fitView({ padding: 0.15, duration: reduceMotion ? 0 : 400, maxZoom: 1.1 }));
     });
     return () => {
       cancelled = true;
     };
-  }, [filtered, mode, direction, showTeams, flow, openDepartments, department]);
+  }, [filtered, mode, direction, showTeams, flow, openDepartments, department, reduceMotion]);
 
   // Highlight the selection and its neighbors; dim the rest.
   const related = useMemo(() => {
@@ -185,15 +187,19 @@ function MapCanvas() {
         setExpanded((xs) => (xs.includes(id) ? xs.filter((x) => x !== id) : [...xs, id]));
       }
       select(g);
+      // Camera focus: glide to the clicked node without zooming further out.
+      const w = node.width ?? 220;
+      const h = node.height ?? 80;
+      flow.setCenter(node.position.x + w / 2, node.position.y + h / 2, { zoom: Math.max(flow.getZoom(), 0.85), duration: reduceMotion ? 0 : 450 });
     },
-    [graph, mode, select],
+    [graph, mode, select, flow, reduceMotion],
   );
 
   const jumpToMatch = () => {
     const first = matches && [...matches][0];
     if (!first) return;
     const n = laidOut.nodes.find((x) => x.id === first);
-    if (n) flow.setCenter(n.position.x + 110, n.position.y + 40, { zoom: 1.1, duration: 500 });
+    if (n) flow.setCenter(n.position.x + 110, n.position.y + 40, { zoom: 1.1, duration: reduceMotion ? 0 : 500 });
     select(graph?.nodes.find((x) => x.id === first) ?? null);
   };
 
@@ -203,6 +209,7 @@ function MapCanvas() {
   return (
     <>
       <PageHeader
+        eyebrow="Explore"
         title="Company Map"
         description={mode === "people" ? "How the company is organized: departments, teams, people and reporting lines." : "How work connects: company goals, initiatives, projects, milestones and dependencies."}
         actions={
@@ -212,19 +219,19 @@ function MapCanvas() {
           </>
         }
       />
-      <div className="mb-3 flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2 rounded-t-[var(--radius-panel)] border border-b-0 border-line bg-surface px-3 py-2.5">
         <div className="relative w-full sm:w-64">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-faint" aria-hidden />
           <Input value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && jumpToMatch()} placeholder={mode === "people" ? "Find a person or team…" : "Find a goal or project…"} className="pl-8" aria-label="Search the map" />
           {matches && <span className="absolute right-2.5 top-2 text-[11.5px] text-muted">{matches.size} found</span>}
         </div>
         {mode === "people" ? (
-          <Select value={department} onChange={(e) => setDepartment(e.target.value)} className="w-auto min-w-[180px]" aria-label="Filter by department">
+          <Select value={department} onChange={(e) => setDepartment(e.target.value)} className="w-auto min-w-[180px] max-w-[220px]" aria-label="Filter by department">
             <option value="">All departments</option>
             {departments?.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
           </Select>
         ) : (
-          <Select value={status} onChange={(e) => setStatus(e.target.value)} className="w-auto min-w-[180px]" aria-label="Filter by work status">
+          <Select value={status} onChange={(e) => setStatus(e.target.value)} className="w-auto min-w-[180px] max-w-[220px]" aria-label="Filter by work status">
             <option value="">All statuses</option>
             {["ON_TRACK", "AT_RISK", "OFF_TRACK", "BLOCKED", "NOT_STARTED", "IN_REVIEW", "COMPLETED"].map((s) => <option key={s} value={s}>{label(s)}</option>)}
           </Select>
@@ -240,7 +247,7 @@ function MapCanvas() {
             <Button size="sm" onClick={() => { setExpanded([]); setOpenDepartments([]); setFocus(null); }}><ChevronsDownUp className="h-3.5 w-3.5" /> Collapse</Button>
           </>
         ) : (
-          <label className="flex items-center gap-1.5 text-[12.5px] text-muted"><input type="checkbox" className="accent-[var(--color-brand)]" checked={showTeams} onChange={(e) => setShowTeams(e.target.checked)} /> Show owning teams</label>
+          <label className="flex items-center gap-1.5 text-[12.5px] text-muted"><input type="checkbox" className="accent-[var(--color-teal-ink)]" checked={showTeams} onChange={(e) => setShowTeams(e.target.checked)} /> Show owning teams</label>
         )}
         {focus && (
           <Button size="sm" variant="soft" onClick={() => setFocus(null)}>Reporting subtree focus <X className="h-3.5 w-3.5" /></Button>
@@ -253,9 +260,9 @@ function MapCanvas() {
       </div>
 
       {error ? <ErrorState error={error} onRetry={refetch} /> : view === "list" ? (
-        <MapList graph={filtered} mode={mode} />
+        <div className="rounded-b-[var(--radius-panel)] border border-line bg-surface p-4"><MapList graph={filtered} mode={mode} /></div>
       ) : (
-        <div className="relative h-[calc(100vh-250px)] min-h-[520px] overflow-hidden rounded-[var(--radius-card)] border border-line bg-[#fbfcfe] shadow-card">
+        <div className="surface-midnight on-navy relative h-[calc(100vh-270px)] min-h-[540px] overflow-hidden rounded-b-[var(--radius-panel)] border border-navy-900 shadow-raised">
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -269,23 +276,24 @@ function MapCanvas() {
             proOptions={{ hideAttribution: true }}
             aria-label={mode === "people" ? "People map" : "Work map"}
           >
-            <Background variant={BackgroundVariant.Dots} gap={22} size={1.2} color="#D7DEEA" />
+            <Background variant={BackgroundVariant.Dots} gap={24} size={1.3} color="rgba(155,178,198,0.18)" />
             <Controls showInteractive={false} position="bottom-left" />
-            <MiniMap pannable zoomable position="bottom-right" style={{ width: 150, height: 100 }} nodeColor={(n) => (n.type === "goal" ? "#C4B5FD" : n.type === "project" ? "#93C5FD" : n.type === "person" ? "#E2E8F0" : "#CBD5E1")} maskColor="rgba(241,245,249,0.7)" />
+            <MiniMap pannable zoomable position="bottom-right" style={{ width: 150, height: 100 }} nodeColor={(n) => (n.type === "goal" ? "#9D87F5" : n.type === "project" ? "#37D5C3" : n.type === "milestone" ? "#F4AD69" : n.type === "person" ? "#9BB2C6" : "#3D5A73")} maskColor="rgba(9,27,45,0.65)" bgColor="#0d2438" />
           </ReactFlow>
-          {isFetching && <div className="absolute left-3 top-3 rounded-md bg-surface px-2 py-1 text-[11.5px] text-muted shadow-card">Updating…</div>}
-          <div className="absolute left-3 top-3 hidden flex-wrap gap-2 rounded-lg bg-surface/90 px-2.5 py-1.5 text-[11px] text-muted shadow-card md:flex" aria-hidden={isFetching}>
+          {isFetching && <div className="absolute bottom-3 left-1/2 z-10 -translate-x-1/2 rounded-full bg-navy-800 px-3 py-1 text-[11.5px] text-navy-muted ring-1 ring-navy-line" role="status">Updating…</div>}
+          <div className="absolute left-3 top-3 hidden flex-wrap items-center gap-3 rounded-[12px] border border-white/[0.08] bg-navy-950/75 px-3 py-1.5 text-[11px] text-navy-muted backdrop-blur md:flex">
             {mode === "people" ? (
               <>
-                <Legend color="#2563EB" text="Reports to" />
-                <Legend color="#7C3AED" text="Dotted line" dashed />
-                <span>Click a department, then a team, to reveal people</span>
+                <Legend color="#37D5C3" text="Reports to" />
+                <Legend color="#9D87F5" text="Dotted line" dashed />
+                <span className="text-navy-faint">Click a department, then a team, to reveal people</span>
               </>
             ) : (
               <>
-                <Legend color="#C4B5FD" text="Contributes to" />
-                <Legend color="#0891B2" text="Depends on" />
-                <Legend color="#DC2626" text="Blocked dependency" />
+                <Legend color="#9D87F5" text="Contributes to" />
+                <Legend color="#5FB7E8" text="Depends on" />
+                <Legend color="#F4AD69" text="At-risk dependency" />
+                <Legend color="#F07167" text="Blocked dependency" />
               </>
             )}
           </div>
@@ -301,7 +309,7 @@ function MapCanvas() {
           />
         </div>
       )}
-      <p className="mt-3 text-[12px] text-muted">The map only contains people, teams and work you are authorized to see. <Link href="/privacy" className="font-medium text-brand">How visibility works</Link></p>
+      <p className="mt-3 text-[12px] text-muted">The map only contains people, teams and work you are authorized to see. <Link href="/privacy" className="font-medium text-teal-ink">How visibility works</Link></p>
     </>
   );
 }

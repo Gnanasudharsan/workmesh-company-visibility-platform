@@ -218,3 +218,14 @@
   body { background: white; }
   .print-area { box-shadow: none !important; border: none !important; }
 }
+
+/* React Flow reads its theme from CSS variables; map them onto the navy canvas tokens. */
+.react-flow {
+  --xy-controls-button-background-color: var(--color-navy-900);
+  --xy-controls-button-background-color-hover: var(--color-navy-800);
+  --xy-controls-button-color: var(--color-navy-text);
+  --xy-controls-button-color-hover: #fff;
+  --xy-controls-button-border-color: var(--color-navy-line);
+  --xy-minimap-background-color: var(--color-navy-900);
+  --xy-edge-label-background-color: var(--color-navy-950);
+}
