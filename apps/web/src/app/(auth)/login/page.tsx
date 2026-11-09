@@ -95,11 +95,11 @@ function LoginForm() {
         <div className="mt-8 rounded-[var(--radius-card)] border border-line bg-surface p-4 shadow-card">
           <p className="flex items-center gap-1.5 text-[12.5px] font-semibold"><Sparkles className="h-3.5 w-3.5 text-violet" aria-hidden /> Demo personas · Northstar Labs</p>
           <p className="mt-0.5 text-[12px] text-muted">Local development only. A fictional company with synthetic data — each persona exercises real permission rules.</p>
-          <div className="mt-3 grid gap-1.5">
+          <div className="mt-3 grid min-w-0 gap-1.5">
             {personas.map((p) => (
-              <button key={p.key} onClick={() => demo(p)} disabled={!!busy} className="group flex items-center justify-between gap-3 rounded-[10px] border border-line px-3 py-2 text-left transition-colors hover:border-teal/50 hover:bg-teal-soft/50 disabled:opacity-60" data-testid={`persona-${p.key}`}>
+              <button key={p.key} onClick={() => demo(p)} disabled={!!busy} className="group flex w-full min-w-0 items-center justify-between gap-3 rounded-[10px] border border-line px-3 py-2 text-left transition-colors hover:border-teal/50 hover:bg-teal-soft/50 disabled:opacity-60" data-testid={`persona-${p.key}`}>
                 <span className="min-w-0">
-                  <span className="block text-[13px] font-medium">{p.label} <span className="font-normal text-muted">· {p.name}</span></span>
+                  <span className="block truncate text-[13px] font-medium">{p.label} <span className="font-normal text-muted">· {p.name}</span></span>
                   <span className="block truncate text-[12px] text-muted">{p.description}</span>
                 </span>
                 {busy === p.key ? <span className="text-[12px] text-muted">Signing in…</span> : <ArrowRight className="h-4 w-4 shrink-0 text-faint transition-transform group-hover:translate-x-0.5 group-hover:text-teal-ink" aria-hidden />}
