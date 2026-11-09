@@ -1,7 +1,7 @@
 {
   "name": "workmesh",
   "private": true,
-  "description": "WorkMesh — Know who's building what. Understand how it all connects.",
+  "description": "WorkMesh \u2014 Know who's building what. Understand how it all connects.",
   "packageManager": "pnpm@10.34.9",
   "engines": {
     "node": ">=22"
@@ -27,6 +27,11 @@
       "msgpackr-extract",
       "sharp",
       "unrs-resolver"
-    ]
+    ],
+    "overrides": {
+      "multer": "^2.5.0",
+      "path-to-regexp@8": "^8.4.0",
+      "deepmerge-ts": "^8.0.0"
+    }
   }
 }
