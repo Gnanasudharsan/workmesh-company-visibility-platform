@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "./button";
 
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse rounded-md bg-slate-200/70", className)} aria-hidden />;
+  return <div className={cn("animate-pulse rounded-md bg-sunken", className)} aria-hidden />;
 }
 
 export function LoadingCards({ count = 3, className }: { count?: number; className?: string }) {
@@ -46,11 +46,11 @@ export function ErrorState({ error, onRetry }: { error: ApiError | Error | null 
     );
   }
   return (
-    <div role="alert" className="flex items-start gap-3 rounded-[var(--radius-card)] border border-red-200 bg-danger-soft p-4 text-[13px] text-red-800">
+    <div role="alert" className="flex items-start gap-3 rounded-[var(--radius-card)] border border-danger/25 bg-danger-soft p-4 text-[13px] text-danger-ink">
       <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
       <div className="flex-1">
         <p className="font-medium">Couldn&apos;t load this</p>
-        <p className="mt-0.5 text-red-700">{error?.message ?? "Unknown error"}</p>
+        <p className="mt-0.5 text-danger-ink">{error?.message ?? "Unknown error"}</p>
       </div>
       {onRetry && (
         <Button size="sm" onClick={onRetry}>

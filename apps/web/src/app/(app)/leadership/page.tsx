@@ -94,7 +94,7 @@ export default function LeadershipPage() {
                 {data.risks.map((r) => (
                   <Link key={r.id} href={`/projects/${r.id}`} className="block rounded-lg border border-line p-3 hover:border-line-strong">
                     <div className="flex flex-wrap items-center gap-2"><span className="text-[13.5px] font-medium">{r.name}</span><HealthBadge health={r.health} /><AccessBadge access={r.access} /><span className="ml-auto text-[12px] text-muted">target {day(r.targetDate)}</span></div>
-                    <p className="mt-1 text-[12.5px] text-slate-600">{r.reasons.join(" · ")}</p>
+                    <p className="mt-1 text-[12.5px] text-ink-soft">{r.reasons.join(" · ")}</p>
                     <p className="mt-1 text-[12px] text-muted">{r.team?.name} · lead {r.lead?.name ?? "—"}</p>
                   </Link>
                 ))}

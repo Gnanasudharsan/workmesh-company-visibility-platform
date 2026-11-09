@@ -35,7 +35,7 @@ export default function AuditPage() {
                 <span className="font-mono text-[12.5px]">{a.action}</span>
                 <span className="text-[12px] text-muted">{a.resourceType}</span>
               </summary>
-              <pre className="mt-2 overflow-x-auto rounded-lg bg-subtle p-3 text-[11.5px] text-slate-700">{JSON.stringify({ resourceId: a.resourceId, requestId: a.requestId, ...a.metadata }, null, 2)}</pre>
+              <pre className="mt-2 overflow-x-auto rounded-lg bg-subtle p-3 text-[11.5px] text-ink-soft">{JSON.stringify({ resourceId: a.resourceId, requestId: a.requestId, ...a.metadata }, null, 2)}</pre>
             </details>
           ))}
         </Card>

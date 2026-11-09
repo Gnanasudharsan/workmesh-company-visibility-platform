@@ -55,12 +55,12 @@ export default function RegisterPage() {
           <Input id="r-org" {...register("organizationName", { required: true, minLength: 2, onChange: (e) => !touchedSlug && setValue("slug", slugify(e.target.value)) })} />
         </Field>
         <Field label="Company URL" htmlFor="r-slug" hint="Lowercase letters, numbers and dashes." error={formState.errors.slug && "3–40 characters: letters, numbers, dashes"}>
-          <div className="flex items-center rounded-lg border border-line bg-subtle pl-3 text-[13px] text-muted focus-within:border-brand focus-within:ring-[3px] focus-within:ring-blue-100">
+          <div className="flex items-center rounded-lg border border-line bg-subtle pl-3 text-[13px] text-muted focus-within:border-brand focus-within:ring-[3px] focus-within:ring-teal-soft">
             workmesh.app/
             <input id="r-slug" className="h-9 flex-1 rounded-r-lg bg-surface px-2 text-ink outline-none" {...register("slug", { required: true, pattern: /^[a-z0-9]+(-[a-z0-9]+)*$/, minLength: 3, maxLength: 40, onChange: () => setTouchedSlug(true) })} />
           </div>
         </Field>
-        {error && <p role="alert" className="rounded-lg bg-danger-soft px-3 py-2 text-[13px] text-red-800">{error}</p>}
+        {error && <p role="alert" className="rounded-lg bg-danger-soft px-3 py-2 text-[13px] text-danger-ink">{error}</p>}
         <Button type="submit" variant="primary" size="lg" className="w-full" loading={formState.isSubmitting}>Create company</Button>
         <p className="text-center text-[13px] text-muted">Already have an account? <Link href="/login" className="font-medium text-brand">Sign in</Link></p>
       </form>

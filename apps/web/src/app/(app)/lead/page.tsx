@@ -40,7 +40,7 @@ export default function LeadPage() {
                     <div className="min-w-0 flex-1 text-[13px]">
                       <div className="mb-1 flex gap-1.5"><FreshnessBadge freshness={c.freshness} />{c.latestUpdate && <Badge tone="brand">{label(c.latestUpdate.stage)}</Badge>}</div>
                       {c.latestUpdate ? <Link href={`/updates/${c.latestUpdate.id}`} className="hover:text-brand-deep">{c.latestUpdate.currentFocus} <span className="text-[11.5px] text-faint">· {relative(c.latestUpdate.publishedAt)}</span></Link> : <span className="text-muted">No update on your projects yet.</span>}
-                      {c.latestUpdate?.helpNeeded && <p className="mt-1 text-[12px] text-amber-800">Needs help: {c.latestUpdate.helpNeeded}</p>}
+                      {c.latestUpdate?.helpNeeded && <p className="mt-1 text-[12px] text-warning-ink">Needs help: {c.latestUpdate.helpNeeded}</p>}
                     </div>
                   </div>
                 ))}

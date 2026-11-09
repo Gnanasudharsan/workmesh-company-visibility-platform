@@ -24,7 +24,7 @@ interface RoadmapData {
   milestones: Array<{ id: string; projectId: string; title: string; status: string; dueDate: string | null; isCritical: boolean; completedAt: string | null }>;
 }
 
-const HEALTH_BAR: Record<string, string> = { ON_TRACK: "bg-success/80", AT_RISK: "bg-warning/80", OFF_TRACK: "bg-danger/80", BLOCKED: "bg-danger/80", NOT_STARTED: "bg-slate-300", DONE: "bg-success/50", CANCELLED: "bg-slate-200" };
+const HEALTH_BAR: Record<string, string> = { ON_TRACK: "bg-success/80", AT_RISK: "bg-warning/80", OFF_TRACK: "bg-danger/80", BLOCKED: "bg-danger/80", NOT_STARTED: "bg-line-strong", DONE: "bg-success/50", CANCELLED: "bg-sunken" };
 
 function Timeline({ data, highlight }: { data: RoadmapData; highlight: string | null }) {
   const projects = data.projects.filter((p) => p.startDate || p.targetDate);
@@ -50,7 +50,7 @@ function Timeline({ data, highlight }: { data: RoadmapData; highlight: string | 
         </div>
         {[...groups.entries()].map(([g, ps]) => (
           <div key={g}>
-            <div className="border-b border-line bg-subtle/50 px-4 py-1.5 text-[12px] font-semibold text-slate-600">{g}</div>
+            <div className="border-b border-line bg-subtle/50 px-4 py-1.5 text-[12px] font-semibold text-ink-soft">{g}</div>
             {ps.map((p) => {
               const s = p.startDate ? new Date(p.startDate) : new Date();
               const e = p.targetDate ? new Date(p.targetDate) : addMonths(s, 1);

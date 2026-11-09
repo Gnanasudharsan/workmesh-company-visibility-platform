@@ -122,11 +122,11 @@ export function UpdateComposer() {
           <Input id="u-next" placeholder="What happens next?" {...register("nextSteps")} />
         </Field>
 
-        <button type="button" onClick={() => setWithBlocker((b) => !b)} className={cn("flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-[13px] transition-colors", withBlocker ? "border-red-200 bg-danger-soft text-red-800" : "border-dashed border-line text-muted hover:text-ink")} aria-pressed={withBlocker}>
+        <button type="button" onClick={() => setWithBlocker((b) => !b)} className={cn("flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-[13px] transition-colors", withBlocker ? "border-danger/25 bg-danger-soft text-danger-ink" : "border-dashed border-line text-muted hover:text-ink")} aria-pressed={withBlocker}>
           <OctagonAlert className="h-4 w-4" aria-hidden /> {withBlocker ? "I'm blocked — this will create a tracked blocker" : "I'm blocked on something"}
         </button>
         {withBlocker && (
-          <div className="grid grid-cols-1 gap-3 rounded-lg border border-red-100 bg-red-50/40 p-3 sm:grid-cols-[1fr_140px]">
+          <div className="grid grid-cols-1 gap-3 rounded-lg border border-danger/15 bg-danger-soft/50 p-3 sm:grid-cols-[1fr_140px]">
             <Field label="What's blocking you?" htmlFor="u-blocker">
               <Input id="u-blocker" placeholder="e.g. Waiting on sandbox credentials" {...register("blockerTitle", { required: withBlocker })} />
             </Field>

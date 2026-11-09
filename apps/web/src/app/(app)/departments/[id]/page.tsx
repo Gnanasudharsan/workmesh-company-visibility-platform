@@ -35,7 +35,7 @@ export default function DepartmentPage() {
             {d.teams.map((t) => (
               <Link key={t.id} href={`/teams/${t.id}`} className="rounded-xl border border-line bg-surface p-4 shadow-card hover:shadow-raised">
                 <p className="flex items-center gap-2 text-[14px] font-semibold"><Users className="h-4 w-4 text-muted" aria-hidden />{t.name}<span className="ml-auto text-[12px] font-normal text-muted">{t.memberCount} people</span></p>
-                <p className="mt-1.5 line-clamp-2 text-[13px] text-slate-600">{t.mission}</p>
+                <p className="mt-1.5 line-clamp-2 text-[13px] text-ink-soft">{t.mission}</p>
                 <p className="mt-2 text-[12px] text-muted">{t.responsibilities.slice(0, 3).join(" · ")}</p>
               </Link>
             ))}

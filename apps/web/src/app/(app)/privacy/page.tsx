@@ -8,7 +8,7 @@ function Item({ icon, title, children }: { icon: ReactNode; title: string; child
   return (
     <div className="flex gap-3">
       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-soft text-brand">{icon}</span>
-      <div><p className="text-[14px] font-semibold">{title}</p><div className="mt-0.5 text-[13.5px] text-slate-600">{children}</div></div>
+      <div><p className="text-[14px] font-semibold">{title}</p><div className="mt-0.5 text-[13.5px] text-ink-soft">{children}</div></div>
     </div>
   );
 }

@@ -69,7 +69,7 @@ function LoginForm() {
         <Field label="Password" htmlFor="password">
           <Input id="password" type="password" autoComplete="current-password" required {...register("password")} />
         </Field>
-        {error && <p role="alert" className="rounded-lg bg-danger-soft px-3 py-2 text-[13px] text-red-800">{error}</p>}
+        {error && <p role="alert" className="rounded-lg bg-danger-soft px-3 py-2 text-[13px] text-danger-ink">{error}</p>}
         <Button type="submit" variant="primary" size="lg" className="w-full" loading={busy === "form"}>
           Sign in <ArrowRight className="h-4 w-4" />
         </Button>

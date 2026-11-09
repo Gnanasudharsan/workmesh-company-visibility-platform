@@ -112,7 +112,7 @@ export default function TeamPulsePage() {
                       {r.blockers.map((b) => (
                         <Link key={b.id} href={`/blockers/${b.id}`} className="flex items-center gap-1.5 hover:text-brand-deep"><SeverityBadge severity={b.severity} /><span className="truncate">{b.title}</span></Link>
                       ))}
-                      {r.helpRequested && r.latestUpdate?.helpNeeded && <p className="flex items-start gap-1 text-[12px] text-amber-800"><HandHelping className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden /> {r.latestUpdate.helpNeeded}</p>}
+                      {r.helpRequested && r.latestUpdate?.helpNeeded && <p className="flex items-start gap-1 text-[12px] text-warning-ink"><HandHelping className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden /> {r.latestUpdate.helpNeeded}</p>}
                       {!r.blockers.length && !r.helpRequested && <span className="text-muted">—</span>}
                     </td>
                     <td className="px-4 py-3">

@@ -31,7 +31,7 @@ export function ProjectOverview({ p }: { p: ProjectDetail }) {
           <CardHeader title="Health & progress" description="Derived from milestones, blockers, dates and dependencies — never from activity." />
           <CardBody className="space-y-4">
             <div className="flex flex-wrap items-center gap-2"><HealthBadge health={p.health} /><StatusBadge status={p.status} /></div>
-            <ul className="space-y-1 text-[13px] text-slate-600">
+            <ul className="space-y-1 text-[13px] text-ink-soft">
               {p.healthReasons.map((r) => <li key={r} className="flex gap-2"><span className="text-faint">•</span>{r}</li>)}
             </ul>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -63,7 +63,7 @@ export function ProjectOverview({ p }: { p: ProjectDetail }) {
         <Card>
           <CardHeader title="About" action={p.canEdit && <Button size="sm" variant="ghost" onClick={() => setEditing(true)}><Pencil className="h-3.5 w-3.5" /> Edit</Button>} />
           <CardBody>
-            <p className="whitespace-pre-line text-[13.5px] leading-relaxed text-slate-700">{p.description || p.summary || "No description yet."}</p>
+            <p className="whitespace-pre-line text-[13.5px] leading-relaxed text-ink-soft">{p.description || p.summary || "No description yet."}</p>
           </CardBody>
         </Card>
       </div>

@@ -54,7 +54,7 @@ export default function PersonPage() {
   return (
     <>
       <Card className="mb-5 overflow-hidden">
-        <div className="h-20 bg-gradient-to-r from-blue-50 via-white to-violet-50" aria-hidden />
+        <div className="h-20 bg-gradient-to-r from-teal-soft via-white to-violet-soft" aria-hidden />
         <div className="-mt-10 flex flex-wrap items-end gap-4 px-6 pb-5">
           <Avatar name={p.name} hue={p.avatarHue} size="xl" className="ring-4" />
           <div className="min-w-0 flex-1">
@@ -77,7 +77,7 @@ export default function PersonPage() {
             <Card>
               <CardHeader title="About & responsibilities" />
               <CardBody className="space-y-3 text-[13.5px]">
-                {p.bio && <p className="text-slate-700">{p.bio}</p>}
+                {p.bio && <p className="text-ink-soft">{p.bio}</p>}
                 <div className="flex flex-wrap gap-1.5">{p.responsibilities.map((r) => <Badge key={r} tone="brand">{r}</Badge>)}</div>
               </CardBody>
             </Card>

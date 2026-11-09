@@ -68,8 +68,8 @@ function DirectoryInner() {
                   <Link key={t.id} href={`/teams/${t.id}`} className="flex flex-col rounded-xl border border-line bg-surface p-4 shadow-card transition-shadow hover:shadow-raised">
                     <div className="flex items-center gap-2"><Users className="h-4 w-4 text-muted" aria-hidden /><p className="text-[14px] font-semibold">{t.name}</p><span className="ml-auto text-[12px] text-muted">{t.memberCount} people</span></div>
                     {t.department && <p className="mt-0.5 flex items-center gap-1.5 text-[12px] text-muted"><span className="h-2 w-2 rounded-full" style={{ background: t.department.color }} aria-hidden />{t.department.name}</p>}
-                    <p className="mt-2 line-clamp-2 text-[13px] text-slate-600">{t.mission ?? "No mission statement yet."}</p>
-                    <div className="mt-3 flex flex-wrap gap-1">{t.responsibilities.slice(0, 4).map((r) => <span key={r} className="rounded-md bg-subtle px-1.5 py-0.5 text-[11.5px] text-slate-600">{r}</span>)}</div>
+                    <p className="mt-2 line-clamp-2 text-[13px] text-ink-soft">{t.mission ?? "No mission statement yet."}</p>
+                    <div className="mt-3 flex flex-wrap gap-1">{t.responsibilities.slice(0, 4).map((r) => <span key={r} className="rounded-md bg-subtle px-1.5 py-0.5 text-[11.5px] text-ink-soft">{r}</span>)}</div>
                     <div className="mt-auto pt-3">{t.lead ? <PersonChip person={t.lead} sub="Team lead" link={false} size="xs" /> : <span className="text-[12px] text-faint">No lead</span>}</div>
                   </Link>
                 ))}
@@ -81,7 +81,7 @@ function DirectoryInner() {
               {depts.data.map((d) => (
                 <Link key={d.id} href={`/departments/${d.id}`} className="rounded-xl border border-line bg-surface p-4 shadow-card transition-shadow hover:shadow-raised">
                   <div className="flex items-center gap-2"><Building2 className="h-4 w-4" style={{ color: d.color }} aria-hidden /><p className="text-[14.5px] font-semibold">{d.name}</p><span className="ml-auto text-[12px] text-muted">{d.memberCount} people · {d.teams.length} teams</span></div>
-                  <p className="mt-1.5 text-[13px] text-slate-600">{d.description}</p>
+                  <p className="mt-1.5 text-[13px] text-ink-soft">{d.description}</p>
                   <div className="mt-3 flex flex-wrap items-center gap-2">{d.head && <PersonChip person={d.head} sub="Head" link={false} size="xs" />}<span className="text-[12px] text-muted">{d.teams.map((t) => t.name).join(" · ")}</span></div>
                 </Link>
               ))}

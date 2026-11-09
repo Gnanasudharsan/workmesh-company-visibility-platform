@@ -96,9 +96,9 @@ function ExplorerInner() {
               <CardBody className="space-y-2">
                 {data.impact.confirmed.length === 0 && <p className="text-[13px] text-muted">None.</p>}
                 {data.impact.confirmed.map((c) => (
-                  <button key={c.id} onClick={() => pick(c.id)} className="block w-full rounded-lg border border-red-100 bg-danger-soft/50 px-3 py-2 text-left">
+                  <button key={c.id} onClick={() => pick(c.id)} className="block w-full rounded-lg border border-danger/15 bg-danger-soft/50 px-3 py-2 text-left">
                     <p className="text-[13px] font-medium">{name.get(c.id)}</p>
-                    <p className="text-[12px] text-red-800">{c.reasons.join(" · ")}</p>
+                    <p className="text-[12px] text-danger-ink">{c.reasons.join(" · ")}</p>
                   </button>
                 ))}
               </CardBody>

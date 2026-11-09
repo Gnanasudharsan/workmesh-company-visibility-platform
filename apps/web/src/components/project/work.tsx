@@ -70,7 +70,7 @@ function WorkItemSheet({ id, project, onClose }: { id: string | null; project: P
       {w && (
         <div className="space-y-5 text-[13px]">
           <div className="flex items-center gap-2"><StatusBadge status={w.status} /><Badge>{label(w.priority)}</Badge></div>
-          {w.description && <p className="whitespace-pre-line text-slate-700">{w.description}</p>}
+          {w.description && <p className="whitespace-pre-line text-ink-soft">{w.description}</p>}
           <div>
             <p className="mb-1.5 text-[12px] font-medium text-muted">Move to</p>
             <div className="flex flex-wrap gap-1.5">{next.map((s) => <Button key={s} size="xs" variant="soft" loading={update.isPending} onClick={() => update.mutate({ status: s })}>{label(s)}</Button>)}</div>
@@ -90,7 +90,7 @@ function WorkItemSheet({ id, project, onClose }: { id: string | null; project: P
           <div>
             <p className="mb-2 text-[12px] font-medium text-muted">History</p>
             <ol className="space-y-1.5 border-l border-line pl-3">
-              {w.history.map((h) => <li key={h.id} className="text-[12px] text-slate-600"><span className="font-medium">{label(h.field)}</span>: {h.fromValue ? label(h.fromValue) : "—"} → {h.toValue ? label(h.toValue) : "—"} <span className="text-faint">· {relative(h.createdAt)}</span></li>)}
+              {w.history.map((h) => <li key={h.id} className="text-[12px] text-ink-soft"><span className="font-medium">{label(h.field)}</span>: {h.fromValue ? label(h.fromValue) : "—"} → {h.toValue ? label(h.toValue) : "—"} <span className="text-faint">· {relative(h.createdAt)}</span></li>)}
               {w.history.length === 0 && <li className="text-[12px] text-faint">No changes recorded yet.</li>}
             </ol>
           </div>

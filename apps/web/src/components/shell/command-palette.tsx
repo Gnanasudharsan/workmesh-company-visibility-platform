@@ -78,7 +78,7 @@ export function CommandPalette() {
   return (
     <DialogPrimitive.Root open={paletteOpen} onOpenChange={setPaletteOpen}>
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-slate-900/30 backdrop-blur-[2px] animate-fade-in" />
+        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-navy-950/45 backdrop-blur-[2px] animate-fade-in" />
         <DialogPrimitive.Content className="fixed left-1/2 top-[12vh] z-50 w-[min(640px,calc(100vw-24px))] -translate-x-1/2 overflow-hidden rounded-2xl border border-line bg-surface shadow-overlay animate-pop">
           <DialogPrimitive.Title className="sr-only">Search WorkMesh</DialogPrimitive.Title>
           <DialogPrimitive.Description className="sr-only">Search people, teams, projects, goals, updates, blockers and decisions you can access.</DialogPrimitive.Description>

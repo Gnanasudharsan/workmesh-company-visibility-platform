@@ -74,7 +74,7 @@ export default function InvitePage() {
         <Field label={data.existingAccount ? "Your WorkMesh password" : "Choose a password"} htmlFor="i-pass" hint={data.existingAccount ? "You already have an account with this email." : "At least 10 characters."} error={formState.errors.password && "At least 10 characters"}>
           <Input id="i-pass" type="password" autoComplete={data.existingAccount ? "current-password" : "new-password"} {...register("password", { required: true, minLength: data.existingAccount ? 1 : 10 })} />
         </Field>
-        {submitError && <p role="alert" className="rounded-lg bg-danger-soft px-3 py-2 text-[13px] text-red-800">{submitError}</p>}
+        {submitError && <p role="alert" className="rounded-lg bg-danger-soft px-3 py-2 text-[13px] text-danger-ink">{submitError}</p>}
         <Button type="submit" variant="primary" size="lg" className="w-full" loading={formState.isSubmitting}>Accept invitation</Button>
       </form>
     </>

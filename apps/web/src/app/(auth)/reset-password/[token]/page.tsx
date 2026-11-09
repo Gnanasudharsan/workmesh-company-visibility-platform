@@ -30,7 +30,7 @@ export default function ResetPasswordPage() {
       ) : (
         <form onSubmit={submit} className="mt-6 space-y-4">
           <Field label="New password" htmlFor="np" hint="At least 10 characters." error={formState.errors.password && "At least 10 characters"}><Input id="np" type="password" autoComplete="new-password" {...register("password", { required: true, minLength: 10 })} /></Field>
-          {error && <p role="alert" className="rounded-lg bg-danger-soft px-3 py-2 text-[13px] text-red-800">{error}</p>}
+          {error && <p role="alert" className="rounded-lg bg-danger-soft px-3 py-2 text-[13px] text-danger-ink">{error}</p>}
           <Button type="submit" variant="primary" size="lg" className="w-full" loading={formState.isSubmitting}>Update password</Button>
         </form>
       )}

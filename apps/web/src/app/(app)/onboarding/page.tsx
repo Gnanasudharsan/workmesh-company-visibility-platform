@@ -38,13 +38,13 @@ function EmployeeWelcome() {
       <div className="rounded-2xl border border-line bg-gradient-to-br from-brand-soft via-white to-violet-soft p-6">
         <p className="text-[12px] font-semibold uppercase tracking-wider text-brand">Welcome to {data.organization.name}</p>
         <h1 className="mt-1 text-[26px] font-semibold tracking-tight">Hi {data.me.name.split(" ")[0]} — here&apos;s where you fit.</h1>
-        <p className="mt-2 max-w-2xl text-[14px] text-slate-600">WorkMesh connects people, teams, goals and projects so you always know who&apos;s building what. Share a short progress update when something changes — that&apos;s it. No activity tracking, ever.</p>
+        <p className="mt-2 max-w-2xl text-[14px] text-ink-soft">WorkMesh connects people, teams, goals and projects so you always know who&apos;s building what. Share a short progress update when something changes — that&apos;s it. No activity tracking, ever.</p>
       </div>
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
         <Card><CardHeader icon={<Users className="h-4 w-4" />} title="You" /><CardBody className="text-[13.5px]"><p className="font-medium">{data.me.title}</p>{data.me.responsibilities.length > 0 && <p className="mt-1 text-muted">Responsible for {data.me.responsibilities.join(", ")}</p>}<div className="mt-3"><p className="mb-1 text-[12px] text-muted">Your manager</p>{data.manager ? <PersonChip person={data.manager} /> : <p className="text-muted">Not assigned yet</p>}</div></CardBody></Card>
         <Card>
           <CardHeader icon={<Building2 className="h-4 w-4" />} title={data.team ? `Your team: ${data.team.name}` : "Your team"} />
-          <CardBody className="text-[13.5px]">{data.team ? <><p className="text-slate-600">{data.team.mission}</p><div className="mt-3 flex flex-wrap gap-2">{data.team.members.slice(0, 8).map((m) => <PersonChip key={m.id} person={m} sub={null} size="xs" />)}</div></> : <p className="text-muted">You haven&apos;t been added to a team yet.</p>}</CardBody>
+          <CardBody className="text-[13.5px]">{data.team ? <><p className="text-ink-soft">{data.team.mission}</p><div className="mt-3 flex flex-wrap gap-2">{data.team.members.slice(0, 8).map((m) => <PersonChip key={m.id} person={m} sub={null} size="xs" />)}</div></> : <p className="text-muted">You haven&apos;t been added to a team yet.</p>}</CardBody>
         </Card>
         <Card>
           <CardHeader icon={<Flag className="h-4 w-4" />} title="Your projects & assignments" />

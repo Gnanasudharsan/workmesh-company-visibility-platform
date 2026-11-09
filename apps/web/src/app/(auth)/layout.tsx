@@ -17,7 +17,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         <div className="relative flex h-full flex-col justify-center px-14">
           <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-brand">Company visibility platform</p>
           <h2 className="mt-3 max-w-md text-[30px] font-semibold leading-[1.15] tracking-[-0.02em]">Know who&apos;s building what. Understand how it all connects.</h2>
-          <ul className="mt-8 space-y-4 text-[14px] text-slate-600">
+          <ul className="mt-8 space-y-4 text-[14px] text-ink-soft">
             {[
               { icon: Network, t: "A living map of people, teams, goals and projects" },
               { icon: Users, t: "Progress updates that take a minute, not a meeting" },

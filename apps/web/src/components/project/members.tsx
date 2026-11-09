@@ -124,7 +124,7 @@ export function DependenciesTab({ p }: { p: ProjectDetail }) {
   return (
     <div className="space-y-5">
       {(confirmed || potential) && (
-        <div className={`rounded-xl border p-4 text-[13px] ${confirmed ? "border-red-200 bg-danger-soft text-red-900" : "border-amber-200 bg-warning-soft text-amber-900"}`}>
+        <div className={`rounded-xl border p-4 text-[13px] ${confirmed ? "border-danger/25 bg-danger-soft text-danger-ink" : "border-warning/25 bg-warning-soft text-warning-ink"}`}>
           <p className="font-medium">{confirmed ? "Confirmed problem" : "Potential downstream impact"}</p>
           <p className="mt-0.5">{confirmed ? confirmed.reasons.join("; ") : `An upstream project ${potential!.distance} step${potential!.distance > 1 ? "s" : ""} away has a confirmed problem${potential!.viaCritical ? " along a critical path" : ""}. This doesn't mean this project will be late — check the slack below.`}</p>
         </div>

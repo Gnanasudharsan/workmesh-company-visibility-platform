@@ -50,11 +50,11 @@ export function UpdateCard({ u, showProject = true }: { u: Update; showProject?:
       </header>
       <Link href={`/updates/${u.id}`} className="mt-3 block space-y-1.5 text-[13.5px]">
         <p className="font-medium text-ink">{u.currentFocus}</p>
-        {u.completed && <p className="text-slate-600"><span className="font-medium text-muted">Done: </span>{u.completed}</p>}
-        {u.nextSteps && <p className="text-slate-600"><span className="font-medium text-muted">Next: </span>{u.nextSteps}</p>}
+        {u.completed && <p className="text-ink-soft"><span className="font-medium text-muted">Done: </span>{u.completed}</p>}
+        {u.nextSteps && <p className="text-ink-soft"><span className="font-medium text-muted">Next: </span>{u.nextSteps}</p>}
       </Link>
       {u.helpNeeded && (
-        <p className="mt-3 flex items-start gap-2 rounded-lg bg-warning-soft px-3 py-2 text-[13px] text-amber-900">
+        <p className="mt-3 flex items-start gap-2 rounded-lg bg-warning-soft px-3 py-2 text-[13px] text-warning-ink">
           <HelpCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
           <span><strong className="font-medium">Help needed{u.helpFrom ? ` from ${u.helpFrom.name}` : ""}:</strong> {u.helpNeeded}</span>
         </p>

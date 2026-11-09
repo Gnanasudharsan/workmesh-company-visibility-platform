@@ -56,7 +56,7 @@ export function MapPanel({ node, graph, mode, onClose, onFocusSubtree, onExpandP
         )}
         {node.type === "team" && (
           <>
-            {d.mission ? <p className="text-slate-600">{String(d.mission)}</p> : null}
+            {d.mission ? <p className="text-ink-soft">{String(d.mission)}</p> : null}
             {d.lead ? <div><p className="mb-1 text-[11.5px] font-medium text-muted">Team lead</p><PersonChip person={d.lead as PersonLite} /></div> : null}
             <p className="text-muted">{String(d.memberCount)} members · {d.expanded ? "shown on the map" : "click the team to expand"}</p>
             <ButtonLink href={`/teams/${id}`} size="sm" variant="primary">Team profile & responsibilities</ButtonLink>

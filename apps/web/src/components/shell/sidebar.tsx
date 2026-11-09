@@ -75,7 +75,7 @@ function NavLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => void 
       aria-current={active ? "page" : undefined}
       className={cn(
         "group flex h-8 items-center gap-2.5 rounded-lg px-2.5 text-[13px] font-medium transition-colors",
-        active ? "bg-surface text-ink shadow-card ring-1 ring-line" : "text-slate-600 hover:bg-white/60 hover:text-ink",
+        active ? "bg-surface text-ink shadow-card ring-1 ring-line" : "text-ink-soft hover:bg-white/60 hover:text-ink",
       )}
     >
       <span className={cn(active ? "text-brand" : "text-faint group-hover:text-muted")}>{item.icon}</span>

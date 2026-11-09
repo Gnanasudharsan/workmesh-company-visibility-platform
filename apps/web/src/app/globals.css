@@ -1,39 +1,113 @@
 @import "tailwindcss";
 
+/*
+ * WorkMesh — Midnight Edition design tokens.
+ * Hybrid identity: midnight navy navigation & command surfaces, porcelain workspace,
+ * white data cards, electric teal interaction, violet/amber data accents.
+ * Every color used by components comes from these tokens (see docs/DESIGN_TOKENS.md).
+ */
 @theme {
-  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Typography */
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Space Grotesk Variable", "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  --color-canvas: #f7f9fc;
+  /* Midnight surfaces */
+  --color-navy-950: #091b2d;
+  --color-navy-900: #12324a;
+  --color-navy-850: #173b56;
+  --color-navy-800: #1d4664;
+  --color-navy-700: #2b5a7c;
+  --color-navy-line: rgba(160, 198, 228, 0.14);
+  --color-navy-text: #e8eef4;
+  --color-navy-muted: #9bb2c6;
+  --color-navy-faint: #6a8499;
+
+  /* Workspace surfaces */
+  --color-canvas: #f7f8f5;      /* porcelain */
   --color-surface: #ffffff;
-  --color-subtle: #f1f5f9;
-  --color-ink: #0f172a;
-  --color-muted: #64748b;
-  --color-faint: #94a3b8;
-  --color-line: #e2e8f0;
-  --color-line-strong: #cbd5e1;
+  --color-subtle: #eff1ec;
+  --color-sunken: #e9ece6;
+  --color-line: #e3e6df;
+  --color-line-strong: #cdd3ca;
 
-  --color-brand: #2563eb;
-  --color-brand-deep: #1d4ed8;
-  --color-brand-soft: #eff6ff;
-  --color-info: #0891b2;
-  --color-info-soft: #ecfeff;
-  --color-success: #16a34a;
-  --color-success-soft: #f0fdf4;
-  --color-warning: #d97706;
-  --color-warning-soft: #fffbeb;
-  --color-danger: #dc2626;
-  --color-danger-soft: #fef2f2;
-  --color-violet: #7c3aed;
-  --color-violet-soft: #f5f3ff;
+  /* Text */
+  --color-ink: #0b1b2b;
+  --color-ink-soft: #33475b;
+  --color-muted: #5b6b7a;
+  --color-faint: #8794a0;
 
-  --radius-card: 14px;
-  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.04);
-  --shadow-raised: 0 8px 24px -8px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(15, 23, 42, 0.05);
-  --shadow-overlay: 0 24px 64px -16px rgba(15, 23, 42, 0.25), 0 4px 12px rgba(15, 23, 42, 0.08);
+  /* Brand accents */
+  --color-teal: #37d5c3;        /* electric teal — fills and accents, especially on navy */
+  --color-teal-bright: #6fe6d8;
+  --color-teal-ink: #0b7a6e;    /* teal for text and icons on light surfaces (5.3:1) */
+  --color-teal-soft: #e2f7f3;
+  --color-violet-bright: #9d87f5;
+  --color-amber-bright: #f4ad69;
+  --color-coral: #f07167;
 
-  --animate-fade-in: fade-in 160ms ease-out;
-  --animate-slide-in: slide-in 220ms cubic-bezier(0.16, 1, 0.3, 1);
-  --animate-pop: pop 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  /* Legacy aliases used across components, remapped to the new identity */
+  --color-brand: #0b7a6e;
+  --color-brand-deep: #075e55;
+  --color-brand-soft: #e2f7f3;
+
+  /* Semantic status (ink = text on light, soft = background, solid = fills/dots) */
+  --color-success: #1d8a57;
+  --color-success-soft: #e6f5ec;
+  --color-success-ink: #13643f;
+  --color-info: #0e7490;
+  --color-info-soft: #e3f3f7;
+  --color-warning: #b4621a;
+  --color-warning-soft: #fdf1e4;
+  --color-warning-ink: #8a4a12;
+  --color-danger: #cf3f3f;
+  --color-danger-soft: #fcebea;
+  --color-danger-ink: #9c2b2b;
+  --color-violet: #6a52d6;
+  --color-violet-soft: #efecfd;
+  --color-unknown: #8794a0;
+
+  /* Graph & chart palette (validated for distinctness on white and navy) */
+  --color-graph-person: #37d5c3;
+  --color-graph-team: #6fb3e8;
+  --color-graph-department: #9bb2c6;
+  --color-graph-goal: #9d87f5;
+  --color-graph-initiative: #b9a8ff;
+  --color-graph-project: #37d5c3;
+  --color-graph-milestone: #f4ad69;
+  --color-graph-edge: rgba(155, 178, 198, 0.42);
+  --color-graph-edge-strong: #37d5c3;
+  --color-graph-blocked: #f07167;
+  --color-graph-risk: #f4ad69;
+  --color-chart-1: #20b8a6;
+  --color-chart-2: #8b74ee;
+  --color-chart-3: #f0a55c;
+  --color-chart-4: #e8635a;
+  --color-chart-5: #5aa3dc;
+  --color-chart-6: #b8c2cb;
+
+  /* Radii */
+  --radius-card: 16px;
+  --radius-panel: 20px;
+  --radius-control: 10px;
+
+  /* Elevation */
+  --shadow-card: 0 1px 2px rgba(9, 27, 45, 0.04), 0 1px 3px rgba(9, 27, 45, 0.05);
+  --shadow-raised: 0 10px 30px -12px rgba(9, 27, 45, 0.18), 0 2px 6px rgba(9, 27, 45, 0.06);
+  --shadow-overlay: 0 30px 80px -20px rgba(9, 27, 45, 0.35), 0 6px 16px rgba(9, 27, 45, 0.1);
+  --shadow-glow: 0 0 0 1px rgba(55, 213, 195, 0.35), 0 0 24px -4px rgba(55, 213, 195, 0.45);
+
+  /* Motion */
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 280ms;
+
+  --animate-fade-in: fade-in 200ms var(--ease-out-quint);
+  --animate-slide-in: slide-in 260ms var(--ease-out-quint);
+  --animate-pop: pop 200ms var(--ease-out-quint);
+  --animate-rise: rise 280ms var(--ease-out-quint) both;
 
   @keyframes fade-in {
     from { opacity: 0; }
@@ -44,8 +118,19 @@
     to { opacity: 1; transform: translateX(0); }
   }
   @keyframes pop {
-    from { opacity: 0; transform: translateY(6px) scale(0.98); }
+    from { opacity: 0; transform: translateY(6px) scale(0.985); }
     to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes drift {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(var(--dx, 6px), var(--dy, -5px)); }
+  }
+  @keyframes dash {
+    to { stroke-dashoffset: -40; }
   }
 }
 
@@ -57,22 +142,39 @@
   }
   body {
     @apply bg-canvas text-ink font-sans text-[14px] leading-[1.5];
-    font-feature-settings: "cv11", "ss01", "ss03";
+    font-feature-settings: "ss01", "cv11";
   }
   h1, h2, h3, h4 {
-    @apply tracking-[-0.011em] text-ink;
+    @apply tracking-[-0.015em] text-ink;
   }
+  h1 { font-family: var(--font-display); letter-spacing: -0.025em; }
   :focus-visible {
-    outline: 2px solid var(--color-brand);
+    outline: 2px solid var(--color-teal-ink);
     outline-offset: 2px;
     border-radius: 6px;
   }
-  ::selection {
-    background: #bfdbfe;
-  }
+  .on-navy :focus-visible { outline-color: var(--color-teal); }
+  ::selection { background: #b8efe7; }
   * {
     scrollbar-width: thin;
     scrollbar-color: var(--color-line-strong) transparent;
+  }
+}
+
+@layer utilities {
+  .tabular { font-variant-numeric: tabular-nums; }
+  .font-display { font-family: var(--font-display); }
+  /* Midnight command surface used by heroes and dark panels */
+  .surface-midnight {
+    background:
+      radial-gradient(120% 140% at 100% 0%, rgba(55, 213, 195, 0.14) 0%, transparent 45%),
+      radial-gradient(90% 120% at 0% 100%, rgba(157, 135, 245, 0.14) 0%, transparent 50%),
+      linear-gradient(160deg, var(--color-navy-900) 0%, var(--color-navy-950) 70%);
+    color: var(--color-navy-text);
+  }
+  .grid-dots {
+    background-image: radial-gradient(rgba(160, 198, 228, 0.16) 1px, transparent 1px);
+    background-size: 22px 22px;
   }
 }
 
@@ -85,13 +187,17 @@
   }
 }
 
-/* React Flow refinements */
+/* React Flow refinements (graph canvases are midnight surfaces) */
 .react-flow__attribution { display: none; }
-.react-flow__controls { box-shadow: var(--shadow-raised); border-radius: 10px; overflow: hidden; border: 1px solid var(--color-line); }
-.react-flow__controls-button { border-bottom: 1px solid var(--color-line); width: 30px; height: 30px; }
-.react-flow__minimap { border-radius: 12px; overflow: hidden; border: 1px solid var(--color-line); box-shadow: var(--shadow-card); }
-.react-flow__edge-path { stroke-linecap: round; }
+.react-flow__controls { box-shadow: var(--shadow-raised); border-radius: 12px; overflow: hidden; border: 1px solid var(--color-navy-line); }
+.react-flow__controls-button { background: var(--color-navy-900); border-bottom: 1px solid var(--color-navy-line); width: 32px; height: 32px; color: var(--color-navy-text); fill: var(--color-navy-text); }
+.react-flow__controls-button:hover { background: var(--color-navy-800); }
+.react-flow__controls-button svg { fill: currentColor; }
+.react-flow__minimap { border-radius: 12px; overflow: hidden; border: 1px solid var(--color-navy-line); background: var(--color-navy-900); }
+.react-flow__edge-path { stroke-linecap: round; transition: stroke 200ms, opacity 200ms, stroke-width 200ms; }
+.react-flow__node { transition: opacity 200ms var(--ease-out-quint); }
 .react-flow__node:focus-visible { outline: none; }
+.react-flow__edge-text { font-family: var(--font-sans); }
 
 @media print {
   .no-print { display: none !important; }

@@ -15,7 +15,7 @@ export function Dialog({ open, onOpenChange, title, description, children, foote
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-slate-900/30 backdrop-blur-[2px] animate-fade-in" />
+        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-navy-950/45 backdrop-blur-[2px] animate-fade-in" />
         <DialogPrimitive.Content
           className={cn("fixed left-1/2 top-[6vh] z-50 flex max-h-[88vh] w-[calc(100vw-24px)] -translate-x-1/2 flex-col rounded-2xl border border-line bg-surface shadow-overlay animate-pop focus:outline-none", width)}
         >
@@ -41,7 +41,7 @@ export function Sheet({ open, onOpenChange, title, description, children, width 
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-slate-900/20 animate-fade-in" />
+        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-navy-950/30 animate-fade-in" />
         <DialogPrimitive.Content className={cn("fixed inset-y-0 right-0 z-50 flex w-full flex-col border-l border-line bg-surface shadow-overlay animate-slide-in focus:outline-none", width)}>
           <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
             <div className="min-w-0">

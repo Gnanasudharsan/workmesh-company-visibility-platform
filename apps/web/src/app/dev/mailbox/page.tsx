@@ -25,7 +25,7 @@ export default function MailboxPage() {
             <article key={m.id} className="px-5 py-4">
               <p className="text-[12px] text-muted">To {m.to} · {dateTime(m.createdAt)}</p>
               <p className="mt-0.5 text-[14px] font-semibold">{m.subject}</p>
-              <p className="mt-1 whitespace-pre-line text-[13px] text-slate-600">{m.text.split("\n")[0]}</p>
+              <p className="mt-1 whitespace-pre-line text-[13px] text-ink-soft">{m.text.split("\n")[0]}</p>
               {m.link && <Link href={new URL(m.link).pathname} className="mt-2 inline-block text-[13px] font-medium text-brand">Open link →</Link>}
             </article>
           ))}

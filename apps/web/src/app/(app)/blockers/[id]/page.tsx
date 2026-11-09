@@ -46,8 +46,8 @@ export default function BlockerPage() {
         <div className="space-y-5">
           <Card>
             <CardBody className="pt-4 text-[13.5px]">
-              <p className="whitespace-pre-line text-slate-700">{b.description || "No description."}</p>
-              {b.resolutionNotes && <p className="mt-4 rounded-lg bg-success-soft px-3 py-2 text-green-900"><strong className="font-medium">Resolution:</strong> {b.resolutionNotes}</p>}
+              <p className="whitespace-pre-line text-ink-soft">{b.description || "No description."}</p>
+              {b.resolutionNotes && <p className="mt-4 rounded-lg bg-success-soft px-3 py-2 text-success-ink"><strong className="font-medium">Resolution:</strong> {b.resolutionNotes}</p>}
             </CardBody>
           </Card>
           <Card>
@@ -58,7 +58,7 @@ export default function BlockerPage() {
                   <li key={e.id} className="relative">
                     <span className={cn("absolute -left-[26px] top-0.5 flex h-4 w-4 items-center justify-center rounded-full ring-4 ring-surface", e.toState === "RESOLVED" ? "bg-success" : e.toState === "OPEN" || e.toState === "REOPENED" ? "bg-warning" : "bg-brand")} aria-hidden />
                     <p className="text-[13px]"><span className="font-medium">{e.actor?.name ?? "Someone"}</span> {e.fromState ? <>moved it from <strong className="font-medium">{label(e.fromState)}</strong> to <strong className="font-medium">{label(e.toState ?? "")}</strong></> : <>reported it</>}{e.toOwner && e.toOwner.id !== e.fromOwner?.id ? <> and assigned <strong className="font-medium">{e.toOwner.name}</strong></> : null}</p>
-                    {e.note && e.note !== "Reported" && <p className="mt-0.5 text-[12.5px] text-slate-600">“{e.note}”</p>}
+                    {e.note && e.note !== "Reported" && <p className="mt-0.5 text-[12.5px] text-ink-soft">“{e.note}”</p>}
                     <p className="text-[11.5px] text-muted">{relative(e.createdAt)}</p>
                   </li>
                 ))}

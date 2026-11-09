@@ -1,7 +1,7 @@
 import { forwardRef, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
-const control = "w-full rounded-lg border border-line bg-surface px-3 text-[13.5px] text-ink shadow-[inset_0_1px_1px_rgba(15,23,42,0.03)] placeholder:text-faint transition-[border,box-shadow] focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-blue-100 disabled:bg-subtle disabled:text-muted aria-[invalid=true]:border-danger";
+const control = "w-full rounded-lg border border-line bg-surface px-3 text-[13.5px] text-ink shadow-[inset_0_1px_1px_rgba(15,23,42,0.03)] placeholder:text-faint transition-[border,box-shadow] focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-teal-soft disabled:bg-subtle disabled:text-muted aria-[invalid=true]:border-danger";
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(({ className, ...props }, ref) => <input ref={ref} className={cn(control, "h-9", className)} {...props} />);
 Input.displayName = "Input";

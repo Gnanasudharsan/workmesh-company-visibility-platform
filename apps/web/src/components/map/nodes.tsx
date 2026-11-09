@@ -27,7 +27,7 @@ function Shell({ data, children, accent, className }: { data: MapNodeData; child
     <div
       className={cn(
         "group relative h-full w-full rounded-xl border bg-surface shadow-card transition-all duration-200",
-        data.selected ? "border-brand shadow-raised ring-[3px] ring-blue-100" : data.highlighted ? "border-blue-300 shadow-raised" : "border-line hover:border-line-strong hover:shadow-raised",
+        data.selected ? "border-brand shadow-raised ring-[3px] ring-teal-soft" : data.highlighted ? "border-teal/50 shadow-raised" : "border-line hover:border-line-strong hover:shadow-raised",
         data.dimmed && "opacity-30",
         className,
       )}
@@ -45,7 +45,7 @@ const Icon = ({ children, tone = "bg-subtle text-muted" }: { children: ReactNode
 export const CompanyNode = memo(({ data }: NodeProps) => {
   const d = data as MapNodeData;
   return (
-    <Shell data={d} className="bg-gradient-to-br from-white to-blue-50/60">
+    <Shell data={d} className="bg-gradient-to-br from-white to-teal-soft/60">
       <div className="flex h-full items-center gap-3 px-4">
         <Icon tone="bg-ink text-white"><Building2 className="h-4 w-4" aria-hidden /></Icon>
         <div className="min-w-0">
@@ -127,7 +127,7 @@ export const GoalNode = memo(({ data }: NodeProps) => {
   const d = data as MapNodeData;
   const progress = d.raw.progress as number | null;
   return (
-    <Shell data={d} className="border-violet-200 bg-gradient-to-br from-white to-violet-50/70">
+    <Shell data={d} className="border-violet/25 bg-gradient-to-br from-white to-violet-soft/70">
       <div className="flex h-full flex-col justify-center gap-1.5 px-4">
         <div className="flex items-center gap-2">
           <Target className="h-4 w-4 text-violet" aria-hidden />

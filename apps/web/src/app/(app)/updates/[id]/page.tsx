@@ -54,7 +54,7 @@ function UpdateInner() {
               <div key={r.id} className="rounded-lg border border-line p-3 text-[13px]">
                 <p className="mb-1 text-[11.5px] text-muted">Version replaced {relative(r.createdAt)}</p>
                 <p className="font-medium">{r.snapshot.currentFocus}</p>
-                {r.snapshot.nextSteps && <p className="text-slate-600">Next: {r.snapshot.nextSteps}</p>}
+                {r.snapshot.nextSteps && <p className="text-ink-soft">Next: {r.snapshot.nextSteps}</p>}
               </div>
             ))}
           </CardBody>

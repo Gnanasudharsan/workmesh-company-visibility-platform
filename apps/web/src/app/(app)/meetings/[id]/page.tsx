@@ -140,7 +140,7 @@ function Decisions({ m }: { m: Meeting }) {
           {m.decisions.map((d) => (
             <div key={d.id} className="rounded-lg border border-line p-3">
               <div className="flex flex-wrap items-center gap-2"><Flag className="h-4 w-4 text-violet" aria-hidden /><span className="flex-1 text-[13.5px] font-medium">{d.title}</span><StatusBadge status={d.status} />{m.canEdit && d.status === "PENDING" && <Button size="xs" onClick={() => decide.mutate(d.id)}>Mark decided</Button>}</div>
-              {d.rationale && <p className="mt-1 text-[13px] text-slate-600">{d.rationale}</p>}
+              {d.rationale && <p className="mt-1 text-[13px] text-ink-soft">{d.rationale}</p>}
               <p className="mt-1 text-[12px] text-muted">{d.owner ? `Owner: ${d.owner.name}` : "No owner"}{d.projectName ? ` · ${d.projectName}` : ""}</p>
             </div>
           ))}

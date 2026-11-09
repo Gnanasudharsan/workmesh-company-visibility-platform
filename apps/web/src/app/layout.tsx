@@ -1,4 +1,6 @@
-import "@fontsource-variable/inter";
+import "@fontsource-variable/geist";
+import "@fontsource-variable/geist-mono";
+import "@fontsource-variable/space-grotesk";
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
@@ -10,7 +12,7 @@ export const metadata: Metadata = {
   icons: { icon: "/icon.svg" },
 };
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#F7F9FC" };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#091B2D" };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (

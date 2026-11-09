@@ -12,7 +12,7 @@ export function Toaster() {
         <div key={t.id} className="pointer-events-auto flex items-start gap-3 rounded-xl border border-line bg-surface p-3.5 shadow-raised animate-pop">
           {t.tone === "success" ? <CheckCircle2 className="mt-0.5 h-4 w-4 text-success" aria-hidden /> : t.tone === "error" ? <AlertCircle className="mt-0.5 h-4 w-4 text-danger" aria-hidden /> : <Info className="mt-0.5 h-4 w-4 text-brand" aria-hidden />}
           <div className="min-w-0 flex-1">
-            <p className={cn("text-[13px] font-medium", t.tone === "error" && "text-red-800")}>{t.title}</p>
+            <p className={cn("text-[13px] font-medium", t.tone === "error" && "text-danger-ink")}>{t.title}</p>
             {t.description && <p className="mt-0.5 text-[12.5px] text-muted">{t.description}</p>}
           </div>
           <button onClick={() => dismiss(t.id)} className="rounded p-0.5 text-faint hover:text-ink" aria-label="Dismiss">

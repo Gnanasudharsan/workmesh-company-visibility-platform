@@ -56,7 +56,7 @@ export function BriefView({ brief, since, onSince, onAddAgenda }: { brief: Brief
   const attention = sections.filter((s) => ["newBlockers", "decisionsRequired", "helpRequests"].includes(s.key)).reduce((a, s) => a + s.items.length, 0);
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-blue-100 bg-gradient-to-r from-brand-soft to-white px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-teal/30 bg-gradient-to-r from-brand-soft to-white px-4 py-3">
         <p className="flex items-center gap-2 text-[13px]"><Sparkles className="h-4 w-4 text-brand" aria-hidden /><span><strong className="font-medium">{attention} item{attention === 1 ? "" : "s"} need discussion.</strong> Compared with {day(brief.since, true)} · generated {relative(brief.generatedAt)} from records you can see.</span></p>
         <label className="flex items-center gap-2 text-[12.5px] text-muted no-print">Compare since <Input type="date" value={since} onChange={(e) => onSince(e.target.value)} className="h-8 w-auto" /></label>
       </div>
