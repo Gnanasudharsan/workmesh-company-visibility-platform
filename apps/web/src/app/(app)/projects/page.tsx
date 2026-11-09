@@ -48,8 +48,8 @@ function ProjectsInner() {
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <Segmented label="Scope" value={scope} onChange={setScope} options={[{ value: "all", label: "All visible" }, { value: "mine", label: "My projects" }]} />
         <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter by name, key or team" className="w-full sm:w-64" aria-label="Filter projects" />
-        <Select value={status} onChange={(e) => setStatus(e.target.value)} className="w-auto" aria-label="Status"><option value="">Any status</option>{PROJECT_STATUSES.map((s) => <option key={s} value={s}>{label(s)}</option>)}</Select>
-        <TeamSelect value={team} onChange={(e) => setTeam(e.target.value)} className="w-auto" placeholder="Any team" aria-label="Team" />
+        <Select value={status} onChange={(e) => setStatus(e.target.value)} className="w-auto max-w-[210px]" aria-label="Status"><option value="">Any status</option>{PROJECT_STATUSES.map((s) => <option key={s} value={s}>{label(s)}</option>)}</Select>
+        <TeamSelect value={team} onChange={(e) => setTeam(e.target.value)} className="w-auto max-w-[210px]" placeholder="Any team" aria-label="Team" />
       </div>
       {error ? <ErrorState error={error} onRetry={refetch} /> : isLoading ? <LoadingCards /> : (
         <Card className="p-2">

@@ -167,6 +167,15 @@
 }
 
 @layer utilities {
+  .skeleton {
+    background: linear-gradient(90deg, var(--color-sunken) 0%, var(--color-subtle) 50%, var(--color-sunken) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s ease-in-out infinite;
+  }
+  @keyframes shimmer {
+    from { background-position: 100% 0; }
+    to { background-position: -100% 0; }
+  }
   .tabular { font-variant-numeric: tabular-nums; }
   .font-display { font-family: var(--font-display); }
   /* Midnight command surface used by heroes and dark panels */

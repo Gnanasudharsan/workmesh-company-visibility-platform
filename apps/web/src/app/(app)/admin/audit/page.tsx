@@ -21,7 +21,7 @@ export default function AuditPage() {
   return (
     <>
       <div className="mb-3 flex items-center gap-2">
-        <Select value={action} onChange={(e) => (setAction(e.target.value), setCursor(null))} className="w-auto" aria-label="Filter by action">{PREFIXES.map((p) => <option key={p} value={p}>{p ? `${p}.*` : "All actions"}</option>)}</Select>
+        <Select value={action} onChange={(e) => (setAction(e.target.value), setCursor(null))} className="w-auto max-w-[210px]" aria-label="Filter by action">{PREFIXES.map((p) => <option key={p} value={p}>{p ? `${p}.*` : "All actions"}</option>)}</Select>
         <p className="text-[12px] text-muted">Structural and access changes. Free-text content of updates and comments is never stored here.</p>
       </div>
       {error ? <ErrorState error={error} onRetry={refetch} /> : isLoading || !data ? <LoadingCards /> : (

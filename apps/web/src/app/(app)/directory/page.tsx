@@ -44,7 +44,7 @@ function DirectoryInner() {
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-faint" aria-hidden />
           <Input value={q} onChange={(e) => setQ(e.target.value)} className="pl-8" placeholder={tab === "teams" ? "Search by responsibility, e.g. invoicing" : "Search by name, title or team"} aria-label="Search directory" />
         </div>
-        {tab !== "departments" && <Select value={dept} onChange={(e) => setDept(e.target.value)} className="w-auto" aria-label="Department"><option value="">All departments</option>{depts.data?.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}</Select>}
+        {tab !== "departments" && <Select value={dept} onChange={(e) => setDept(e.target.value)} className="w-auto max-w-[210px]" aria-label="Department"><option value="">All departments</option>{depts.data?.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}</Select>}
       </div>
       {error ? <ErrorState error={error} /> : !people.data || !teams.data || !depts.data ? <LoadingCards /> : (
         <>

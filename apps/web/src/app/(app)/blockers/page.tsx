@@ -33,7 +33,7 @@ function BlockersInner() {
       </div>
       <div className="mb-3 flex flex-wrap gap-2">
         <Segmented label="Scope" value={scope} onChange={setScope} options={[...(canQueue ? [{ value: "queue" as const, label: "Needs my attention" }] : []), { value: "mine", label: "Reported by or assigned to me" }, { value: "all", label: "All I can see" }]} />
-        <Select value={state} onChange={(e) => setState(e.target.value)} className="w-auto" aria-label="State"><option value="">Any state</option>{BLOCKER_STATES.map((s) => <option key={s} value={s}>{label(s)}</option>)}</Select>
+        <Select value={state} onChange={(e) => setState(e.target.value)} className="w-auto max-w-[210px]" aria-label="State"><option value="">Any state</option>{BLOCKER_STATES.map((s) => <option key={s} value={s}>{label(s)}</option>)}</Select>
       </div>
       {error ? <ErrorState error={error} onRetry={refetch} /> : isLoading ? <LoadingCards /> : (
         <Card className="p-2">{(data ?? []).length === 0 ? <EmptyState title="No blockers here" description="Nothing in this view is blocked." /> : data!.map((b) => <BlockerRow key={b.id} b={b} />)}</Card>

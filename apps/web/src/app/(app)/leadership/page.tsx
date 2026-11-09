@@ -35,7 +35,7 @@ export default function LeadershipPage() {
       <PageHeader
         title="Leadership overview"
         description="Company goals, portfolio health and risk — summaries only. Restricted work stays invisible unless you have been granted access."
-        actions={<Select value={since} onChange={(e) => setSince(e.target.value)} className="w-auto" aria-label="Compare with"><option value="7">Changes in the last 7 days</option><option value="14">Since last review (14 days)</option><option value="30">Last 30 days</option></Select>}
+        actions={<Select value={since} onChange={(e) => setSince(e.target.value)} className="w-auto max-w-[210px]" aria-label="Compare with"><option value="7">Changes in the last 7 days</option><option value="14">Since last review (14 days)</option><option value="30">Last 30 days</option></Select>}
       />
       {error ? <ErrorState error={error} onRetry={refetch} /> : isLoading || !data ? <LoadingCards count={4} /> : (
         <div className="space-y-5">

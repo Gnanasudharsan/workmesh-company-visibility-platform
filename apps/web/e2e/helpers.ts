@@ -18,7 +18,7 @@ export async function login(page: Page, email: string, password = process.env.E2
   await page.context().clearCookies();
   await page.goto("/login");
   await page.getByLabel("Work email").fill(email);
-  await page.getByLabel("Password").fill(password);
+  await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: /^Sign in/ }).click();
   await page.waitForURL(/\/(home|onboarding)/);
 }

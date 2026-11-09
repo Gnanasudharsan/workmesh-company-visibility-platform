@@ -44,7 +44,7 @@ export function MembersTab({ p }: { p: ProjectDetail }) {
           {p.canManage && (
             <div className="flex flex-wrap gap-2 border-t border-line pt-3">
               <PersonSelect value={who} onChange={(e) => setWho(e.target.value)} exclude={p.members.map((m) => m.id)} placeholder="Add a person…" className="min-w-0 flex-1" aria-label="Person to add" />
-              <Select value={role} onChange={(e) => setRole(e.target.value)} className="w-auto" aria-label="Role"><option value="CONTRIBUTOR">Contributor</option><option value="VIEWER">Viewer</option><option value="LEAD">Lead</option></Select>
+              <Select value={role} onChange={(e) => setRole(e.target.value)} className="w-auto max-w-[210px]" aria-label="Role"><option value="CONTRIBUTOR">Contributor</option><option value="VIEWER">Viewer</option><option value="LEAD">Lead</option></Select>
               <Button variant="primary" disabled={!who} loading={add.isPending} onClick={() => add.mutate(undefined)}><Plus className="h-3.5 w-3.5" /> Add</Button>
             </div>
           )}

@@ -229,7 +229,7 @@ function MapCanvas() {
             {["ON_TRACK", "AT_RISK", "OFF_TRACK", "BLOCKED", "NOT_STARTED", "IN_REVIEW", "COMPLETED"].map((s) => <option key={s} value={s}>{label(s)}</option>)}
           </Select>
         )}
-        <Select value={direction} onChange={(e) => setDirection(e.target.value as LayoutKind)} className="w-auto" aria-label="Graph layout">
+        <Select value={direction} onChange={(e) => setDirection(e.target.value as LayoutKind)} className="w-auto max-w-[210px]" aria-label="Graph layout">
           <option value="down">Top-down layout</option>
           <option value="right">Left-to-right layout</option>
           <option value="tree">Compact tree</option>
