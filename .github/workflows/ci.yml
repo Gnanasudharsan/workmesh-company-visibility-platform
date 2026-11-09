@@ -119,7 +119,6 @@ jobs:
         options: --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 3s --health-retries 20
     env:
       CI: "true"
-      NODE_ENV: development
       DATABASE_URL: postgresql://workmesh_owner:ci-owner-password@localhost:5432/workmesh?schema=public
       APP_DATABASE_URL: postgresql://workmesh_app:ci-app-password@localhost:5432/workmesh?schema=public
       REDIS_URL: redis://localhost:6379
