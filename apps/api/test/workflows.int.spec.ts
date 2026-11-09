@@ -203,6 +203,13 @@ describe("critical workflows", () => {
     await anon.post("/api/auth/login").send({ email: EMAIL.zoe, password: "zoe-new-password-1" }).expect(200);
   });
 
+  it("neutralizes spreadsheet formula injection in CSV exports", async () => {
+    await c.priya!.post("/api/projects", { name: "=HYPERLINK(\"http://evil.example\")", visibility: "ORG", owningTeamId: seed.northstar.teams.pm }).expect(201);
+    const csv = await c.priya!.get("/api/projects/export.csv").expect(200);
+    expect(csv.text).toContain(`"'=HYPERLINK(""http://evil.example"")"`);
+    expect(csv.text).not.toMatch(/(^|,)"=HYPERLINK/m);
+  });
+
   it("health checks verify real dependencies and metrics require a token", async () => {
     const h = await request(app.getHttpServer()).get("/api/health").expect(200);
     expect(h.body.checks.rls.enforced).toBe(true);

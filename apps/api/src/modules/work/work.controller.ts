@@ -116,7 +116,11 @@ export class WorkController {
   @Get("projects/export.csv")
   async exportCsv(@Auth() auth: RequestAuth, @Res() res: Response) {
     const rows = await this.projects.list(requireOrg(auth).ctx);
-    const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    // Quote every cell and neutralize spreadsheet formula injection (=, +, -, @, tab, CR).
+    const esc = (v: unknown) => {
+      const text = String(v ?? "");
+      return `"${(/^[=+\-@\t\r]/.test(text) ? `'${text}` : text).replace(/"/g, '""')}"`;
+    };
     const header = ["Key", "Name", "Status", "Health", "Computed progress %", "Reported progress %", "Team", "Lead", "Target date", "Access"];
     const lines = rows.map((p) =>
       [p.key, p.name, label(p.status), label(p.health), p.computedProgress ?? "", p.reportedProgress ?? "", p.owningTeam?.name, p.lead?.name, p.targetDate?.toISOString().slice(0, 10), p.access].map(esc).join(","),
