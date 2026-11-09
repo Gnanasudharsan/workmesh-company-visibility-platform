@@ -2,7 +2,7 @@
 
 import { Building2, Search, Users } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useMemo, useState } from "react";
 import { Avatar, PersonChip } from "@/components/ui/avatar";
 import { RoleBadge } from "@/components/ui/badges";
@@ -18,7 +18,11 @@ interface Team { id: string; name: string; mission: string | null; responsibilit
 
 function DirectoryInner() {
   const params = useSearchParams();
-  const [tab, setTab] = useState<"people" | "teams" | "departments">((params.get("tab") as "teams") ?? "people");
+  const router = useRouter();
+  const pathname = usePathname();
+  // The section lives in the URL so links (and the sidebar's Teams entry) can open it directly.
+  const tab = ((["teams", "departments"] as const).find((t) => t === params.get("tab")) ?? "people") as "people" | "teams" | "departments";
+  const setTab = (t: typeof tab) => router.replace(t === "people" ? pathname : `${pathname}?tab=${t}`, { scroll: false });
   const [q, setQ] = useState("");
   const [dept, setDept] = useState("");
   const people = usePeople();

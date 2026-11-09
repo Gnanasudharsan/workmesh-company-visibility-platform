@@ -6,6 +6,7 @@ import { CommandPalette } from "@/components/shell/command-palette";
 import { Sidebar } from "@/components/shell/sidebar";
 import { Topbar } from "@/components/shell/topbar";
 import { LogoMark } from "@/components/shell/logo";
+import { PageTransition } from "@/components/motion/primitives";
 import { UpdateComposer } from "@/components/work/update-composer";
 import { useMe } from "@/lib/hooks";
 import { useRealtime } from "@/lib/realtime";
@@ -47,13 +48,14 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar />
-        <main id="main" className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <main id="main" className="mx-auto w-full max-w-[1480px] flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
           {me.active.organization.isDemo && (
-            <p className="mb-4 rounded-lg border border-dashed border-line bg-surface/60 px-3 py-1.5 text-[12px] text-muted">
-              You are viewing <strong className="font-medium text-ink">{me.active.organization.name}</strong>, a fictional company with synthetic demo data.
+            <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-line bg-surface/70 px-3 py-1 text-[11.5px] text-muted">
+              <span className="h-1.5 w-1.5 rounded-full bg-violet-bright" aria-hidden />
+              Viewing <strong className="font-medium text-ink">{me.active.organization.name}</strong> — a fictional company with synthetic demo data
             </p>
           )}
-          {children}
+          <PageTransition>{children}</PageTransition>
         </main>
       </div>
       <CommandPalette />

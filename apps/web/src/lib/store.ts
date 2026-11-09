@@ -12,6 +12,8 @@ interface UiState {
   closeComposer: () => void;
   paletteOpen: boolean;
   setPaletteOpen: (o: boolean) => void;
+  sidebarCollapsed: boolean;
+  toggleSidebar: () => void;
   mobileNavOpen: boolean;
   setMobileNavOpen: (o: boolean) => void;
   realtime: "connecting" | "live" | "offline";
@@ -31,6 +33,8 @@ export const useUi = create<UiState>()(
       closeComposer: () => set({ composer: { open: false } }),
       paletteOpen: false,
       setPaletteOpen: (paletteOpen) => set({ paletteOpen }),
+      sidebarCollapsed: false,
+      toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
       mobileNavOpen: false,
       setMobileNavOpen: (mobileNavOpen) => set({ mobileNavOpen }),
       realtime: "connecting",
@@ -38,7 +42,7 @@ export const useUi = create<UiState>()(
       recent: [],
       pushRecent: (r) => set((s) => ({ recent: [r, ...s.recent.filter((x) => x.href !== r.href)].slice(0, 8) })),
     }),
-    { name: "workmesh-ui", partialize: (s) => ({ workspace: s.workspace, recent: s.recent }) },
+    { name: "workmesh-ui", partialize: (s) => ({ workspace: s.workspace, recent: s.recent, sidebarCollapsed: s.sidebarCollapsed }) },
   ),
 );
 

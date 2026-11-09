@@ -40,13 +40,13 @@ export function WorkspaceSwitcher({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <DropdownMenu>
-      <DropdownTrigger className="flex w-full items-center gap-2.5 rounded-lg border border-line bg-surface px-2.5 py-2 text-left shadow-card hover:border-line-strong" aria-label="Switch workspace">
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-ink text-[11px] font-semibold text-white">{active?.organization.name.slice(0, 2).toUpperCase() ?? "WM"}</span>
+      <DropdownTrigger className="flex w-full items-center gap-2.5 rounded-[12px] border border-navy-line bg-white/[0.05] px-2.5 py-2 text-left transition-colors hover:border-teal/30 hover:bg-white/[0.07]" aria-label="Switch workspace">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[8px] bg-gradient-to-br from-teal to-violet-bright text-[11px] font-bold text-navy-950">{active?.organization.name.slice(0, 2).toUpperCase() ?? "WM"}</span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-[13px] font-semibold leading-tight">{active?.organization.name ?? "WorkMesh"}</span>
-          <span className="block truncate text-[11.5px] text-muted">{WORKSPACE_LABEL[current]}</span>
+          <span className="block truncate text-[13px] font-semibold leading-tight text-white">{active?.organization.name ?? "WorkMesh"}</span>
+          <span className="block truncate text-[11.5px] text-navy-muted">{WORKSPACE_LABEL[current]}</span>
         </span>
-        <ChevronsUpDown className="h-3.5 w-3.5 text-faint" aria-hidden />
+        <ChevronsUpDown className="h-3.5 w-3.5 text-navy-faint" aria-hidden />
       </DropdownTrigger>
       <DropdownContent align="start" className="w-[232px]">
         <DropdownLabel>Workspaces</DropdownLabel>

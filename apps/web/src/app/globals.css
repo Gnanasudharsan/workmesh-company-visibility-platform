@@ -106,6 +106,7 @@
 
   --animate-fade-in: fade-in 200ms var(--ease-out-quint);
   --animate-slide-in: slide-in 260ms var(--ease-out-quint);
+  --animate-slide-in-left: slide-in-left 280ms var(--ease-out-quint);
   --animate-pop: pop 200ms var(--ease-out-quint);
   --animate-rise: rise 280ms var(--ease-out-quint) both;
 
@@ -115,6 +116,10 @@
   }
   @keyframes slide-in {
     from { opacity: 0; transform: translateX(24px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes slide-in-left {
+    from { opacity: 0.6; transform: translateX(-100%); }
     to { opacity: 1; transform: translateX(0); }
   }
   @keyframes pop {
