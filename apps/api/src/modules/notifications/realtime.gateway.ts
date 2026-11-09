@@ -35,7 +35,10 @@ export class RealtimeGateway implements OnGatewayConnection, OnModuleDestroy {
     private readonly metrics: MetricsService,
   ) {
     this.sub.on("error", (e) => this.logger.warn(`redis: ${e.message}`));
-    void this.sub.subscribe(realtimeChannel()).catch((e: Error) => this.logger.warn(`subscribe failed: ${e.message}`));
+    // The connection has no offline queue, so subscribe once it is ready (and again after reconnects).
+    this.sub.on("ready", () => {
+      void this.sub.subscribe(realtimeChannel()).catch((e: Error) => this.logger.warn(`subscribe failed: ${e.message}`));
+    });
     this.sub.on("message", (_channel, raw) => this.dispatch(raw));
   }
 
