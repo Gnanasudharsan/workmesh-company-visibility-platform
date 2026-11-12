@@ -9,6 +9,8 @@ import { requireOrg, type RequestAuth } from "../../common/request-auth";
 import { config } from "../../config";
 import { isDemo } from "../auth/auth.controller";
 import { CopilotAgent, type AskResult } from "./agent";
+import { CopilotProviders } from "./providers";
+import { CopilotSuggestions } from "./suggestions";
 import { CitationLedger, CopilotToolRunner, type CopilotAuth } from "./tool-runner";
 import { TOOLS } from "./tools";
 
@@ -33,7 +35,16 @@ export class CopilotController {
   constructor(
     private readonly runner: CopilotToolRunner,
     private readonly agent: CopilotAgent,
+    private readonly providers: CopilotProviders,
+    private readonly suggestions: CopilotSuggestions,
   ) {}
+
+  /** Lets the web app decide whether to show Ask the Mesh, and what to suggest. 404 when off. */
+  @Get("status")
+  async status(@Auth() auth: RequestAuth) {
+    if (!copilotEnabled()) throw notFound();
+    return { enabled: true, model: this.providers.current().model, maxQuestionLength: 500, suggestions: await this.suggestions.forViewer(requireOrg(auth).ctx) };
+  }
 
   /**
    * Answers one question from WorkMesh records the signed-in user can see, with server-validated

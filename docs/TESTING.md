@@ -14,8 +14,12 @@ make test        # core + API integration + web unit tests (starts Postgres/Redi
 ```
 
 ```bash
-make e2e         # reseeds demo data, starts API + web if not running, runs journeys A–G
+make e2e         # reseeds demo data, starts API + web if not running, runs journeys A–H
 ```
+
+Playwright starts the API with `COPILOT_ENABLED=true COPILOT_PROVIDER=fake` (journeys never call a model) and
+`AUTH_RATE_LIMIT_PER_MINUTE=200`, because the suite signs in more than 20 times a minute (the integration
+suites raise the same limit). If you reuse an API you started yourself, start it with those three variables.
 
 ```bash
 pnpm --filter @workmesh/api loadtest   # latency measurement against a running API

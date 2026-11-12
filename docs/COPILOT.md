@@ -1,7 +1,7 @@
 # Ask the Mesh — permission-safe copilot
 
-> Status: **Phase 2 — agent loop, providers and `POST /api/copilot/ask` implemented** (API and CLI;
-> no UI yet). Each phase updates this file and [PROGRESS.md](../PROGRESS.md) as it lands.
+> Status: **Phase 3 — Ask the Mesh chat UI implemented** (web page, sidebar, ⌘K) on top of the
+> agent loop and `POST /api/copilot/ask`. Each phase updates this file and [PROGRESS.md](../PROGRESS.md) as it lands.
 
 Ask the Mesh answers natural-language questions about the company ("What's blocking Checkout Launch?",
 "What is Maya working on?") from WorkMesh records, with a citation for every claim. It is an **optional
@@ -58,7 +58,8 @@ Module layout (`apps/api/src/modules/copilot/`):
 | `agent.ts` | Single-turn tool-calling loop, bounded by `COPILOT_MAX_TOOL_CALLS` (then budget-exhausted results, then the loop ends) and `COPILOT_TIMEOUT_MS` (aborts the model call; 504). Invalid tool input from the model goes back to it as an error result. |
 | `prompt.ts` | System prompt built from the invariants above, and `wrapToolResult`, which JSON-escapes `<`/`>` so employee text can't close or forge the `<tool_result>` tag. |
 | `citations.ts` | Keeps `[[type:id]]` tokens whose id is in this request's ledger (the ledger's type wins), renumbers them `[1]`, `[2]`… by first use, builds `href`s from a server-side route map, and strips invented or unreturned ids, bare ids, self-numbered `[n]`, links, images and HTML. With no citations left, it returns the standard answer. |
-| `copilot.controller.ts` | DEMO-only `GET /api/copilot/dev/tools` and `POST /api/copilot/dev/tools/:name` (Phase 1); `POST /api/copilot/ask` (Phase 2). |
+| `copilot.controller.ts` | `GET /api/copilot/status` and `POST /api/copilot/ask`; DEMO-only `GET /api/copilot/dev/tools` and `POST /api/copilot/dev/tools/:name`. |
+| `suggestions.ts` | Suggested questions per authorized workspace, filled in from the viewer's own visible projects, led projects, at-risk projects, direct reports and team, using the same presenters as every page. |
 
 ### Transaction boundary
 
@@ -176,6 +177,33 @@ All of these use the scripted fake provider; no test calls a real model.
   model failure (503); auth (401), CSRF and origin (403), validation (400), `COPILOT_ENABLED` (404 even for invalid
   input); logs carry metadata only.
 - `test/copilot-ratelimit.int.spec.ts` (integration, 1): the 4th question in a minute at a limit of 3 gets a 429.
+
+## Web app (Phase 3)
+
+| Piece | Where | Behaviour |
+| --- | --- | --- |
+| Availability | `GET /api/copilot/status` | `{ enabled, model, maxQuestionLength, suggestions }`, or 404 when the copilot is off. The sidebar entry, the ⌘K actions and the page only appear when it answers. |
+| Page | `app/(app)/ask` → `components/copilot/ask-mesh.tsx` | Composer (500-character limit with a counter; Enter to ask, Shift+Enter for a new line), suggested questions for the active workspace first, then answer turns. Each question is answered on its own: the visible list is just this page's history, held in memory. |
+| Answer rendering | `components/copilot/answer.tsx` | A small Markdown subset (paragraphs, lists, bold, italic, code) built from React elements, never HTML. `[n]` markers link to their source; source chips link to the server-built `href` with a type icon and the record's title. |
+| States | same | Loading (skeleton and status text), the standard not-found answer with a neutral hint, errors for 429 / 503 / 504 / network with *Try again*, and "isn't turned on" when the status endpoint 404s. |
+| Navigation | `shell/sidebar.tsx`, `shell/command-palette.tsx` | "Ask the Mesh" under Explore. In ⌘K: a *Jump to* row, and *Ask the Mesh: “…”* after the search results, so Enter still opens the top result. The question is handed over in memory (`useUi.pendingQuestion`), never in the URL or the persisted recents. When the search finds nothing the palette still says "No results you have access to." |
+| Design | Midnight Edition tokens | Navy composer (`surface-midnight`), teal citation markers, porcelain answer cards; `animate-rise` honours `prefers-reduced-motion`; on phones the suggestions are one swipeable row and the composer stays pinned above a canvas fade. |
+| Accessibility | — | A labelled composer described by the hint and counter; an `aria-live` answers region with `aria-busy`; a `role="status"` loading state and `role="alert"` errors; each turn is an `article` labelled by its question; markers are labelled "Source n: title"; sources are an ordered list labelled "Sources". |
+
+### Tests (Phase 3)
+
+- `components/copilot/ask-mesh.test.tsx` (Vitest, 12): empty state and per-workspace suggestion order; the CSRF header,
+  loading state, answer, marker → chip anchors and server hrefs; the standard answer with a hint and no sources;
+  429 / 504 / 503 messages and retry; the 500-character limit and Shift+Enter; the ⌘K hand-off consumed once and
+  never persisted; the off state; no HTML is ever rendered from an answer; lists and code; the sidebar entry
+  appears only when the server says the copilot is on.
+- `test/copilot-ask.int.spec.ts` (+1): the status endpoint 404s when off, needs a session, returns suggestions only
+  for granted workspaces, and never names a record the viewer can't open (Atlas, Enterprise Pricing, the
+  restricted goal; nothing from Northstar for Noah).
+- `e2e/copilot.spec.ts` (Playwright, Journey H, 3), with the fake provider: Daniel asks from the page and opens a
+  cited record; Priya asks through ⌘K and the question never reaches the URL or localStorage; for Maya, Project
+  Atlas and Project Zephyr produce identical answer cards with no sources and no mention of access. `/ask` was
+  added to the responsive no-overflow sweep (6 widths).
 
 ## Threat model
 

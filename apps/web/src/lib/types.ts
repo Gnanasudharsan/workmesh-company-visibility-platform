@@ -199,3 +199,29 @@ export interface MeetingSummary {
   openActionItems: number;
   decisions: number;
 }
+
+/* ------------------------------- Ask the Mesh ------------------------------- */
+
+export interface CopilotStatus {
+  enabled: true;
+  model: string;
+  maxQuestionLength: number;
+  /** Per authorized workspace, built server-side from records the viewer can open. */
+  suggestions: Partial<Record<Workspace, string[]>>;
+}
+
+export interface CopilotCitation {
+  n: number;
+  type: string;
+  id: string;
+  title: string;
+  href: string;
+}
+
+export interface CopilotAnswer {
+  answer: string;
+  citations: CopilotCitation[];
+  toolCalls: Array<{ name: string; found: boolean }>;
+  latencyMs: number;
+  model: string;
+}

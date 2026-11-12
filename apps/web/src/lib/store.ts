@@ -22,6 +22,9 @@ interface UiState {
   setRealtime: (s: UiState["realtime"]) => void;
   recent: Array<{ href: string; label: string; kind: string }>;
   pushRecent: (r: { href: string; label: string; kind: string }) => void;
+  /** A question handed to Ask the Mesh from ⌘K. Memory only: never persisted or put in a URL. */
+  pendingQuestion: string | null;
+  setPendingQuestion: (q: string | null) => void;
 }
 
 /** UI-only state. Authorization never depends on it: the server decides what each workspace may show. */
@@ -45,6 +48,8 @@ export const useUi = create<UiState>()(
       setRealtime: (realtime) => set({ realtime }),
       recent: [],
       pushRecent: (r) => set((s) => ({ recent: [r, ...s.recent.filter((x) => x.href !== r.href)].slice(0, 8) })),
+      pendingQuestion: null,
+      setPendingQuestion: (pendingQuestion) => set({ pendingQuestion }),
     }),
     { name: "workmesh-ui", partialize: (s) => ({ workspace: s.workspace, recent: s.recent, sidebarCollapsed: s.sidebarCollapsed, tour: s.tour }) },
   ),

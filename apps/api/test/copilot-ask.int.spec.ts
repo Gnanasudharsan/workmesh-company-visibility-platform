@@ -249,6 +249,27 @@ describe("POST /api/copilot/ask", () => {
     }
   });
 
+  it("GET /api/copilot/status: 404 when off; suggestions only for granted workspaces, built from visible records", async () => {
+    await withEnv({ COPILOT_ENABLED: "false" }, async () => {
+      await c.maya.get("/api/copilot/status").expect(404);
+    });
+    await request(app.getHttpServer()).get("/api/copilot/status").expect(401);
+    const maya = (await c.maya.get("/api/copilot/status").expect(200)).body;
+    expect(maya).toMatchObject({ enabled: true, model: "fake-scripted", maxQuestionLength: 500 });
+    expect(Object.keys(maya.suggestions)).toEqual(["employee"]);
+    const daniel = (await c.daniel.get("/api/copilot/status").expect(200)).body;
+    expect(Object.keys(daniel.suggestions)).toEqual(expect.arrayContaining(["employee", "manager"]));
+    expect(daniel.suggestions.manager.some((q: string) => /^What is .+ working on\?$/.test(q))).toBe(true);
+    const sam = (await c.sam.get("/api/copilot/status").expect(200)).body;
+    expect(Object.keys(sam.suggestions)).toContain("admin");
+    // Suggestions never name a record the viewer can't open.
+    for (const who of ["maya", "daniel", "priya", "sam", "noah"] as const) {
+      const text = JSON.stringify((await c[who].get("/api/copilot/status").expect(200)).body);
+      expect(text).not.toMatch(/Atlas|Enterprise Pricing|Strategic expansion/);
+      if (who === "noah") expect(text).not.toMatch(/Checkout|Payments|Northstar/);
+    }
+  });
+
   it("the default fake script routes a suggested question to a tool and cites what it found", async () => {
     const res = await ask("daniel", "What's blocking Checkout Launch?").expect(200);
     expect(res.body.toolCalls[0]).toEqual({ name: "project_blockers", found: true });

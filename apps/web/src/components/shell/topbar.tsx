@@ -21,7 +21,7 @@ const NAMES: Record<string, string> = {
   projects: "Projects", dependencies: "Dependencies", directory: "Directory", people: "People", teams: "Teams", departments: "Departments", meetings: "Meetings",
   blockers: "Blockers", notifications: "Notifications", settings: "Settings", admin: "Administration", members: "Members", invitations: "Invitations", structure: "Teams & departments",
   reporting: "Reporting lines", permissions: "Permission inspector", audit: "Audit log", updates: "Updates", goals: "Goals", initiatives: "Initiatives", milestones: "Milestones",
-  decisions: "Decisions", search: "Search", privacy: "Privacy & trust", onboarding: "Welcome", new: "New",
+  decisions: "Decisions", search: "Search", ask: "Ask the Mesh", privacy: "Privacy & trust", onboarding: "Welcome", new: "New",
 };
 
 function Breadcrumb() {

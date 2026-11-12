@@ -2,11 +2,12 @@
 
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Command } from "cmdk";
-import { BookUser, Building2, CalendarClock, Clock, FolderKanban, Flag, MessageSquare, OctagonAlert, Search, Target, Users } from "lucide-react";
+import { BookUser, Building2, CalendarClock, Clock, FolderKanban, Flag, MessageSquare, OctagonAlert, Search, Sparkles, Target, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { useApi } from "@/lib/hooks";
 import { useUi } from "@/lib/store";
+import type { CopilotStatus } from "@/lib/types";
 import { Avatar } from "../ui/avatar";
 
 interface SearchResults {
@@ -49,7 +50,8 @@ function Row({ go, href, label, kind, icon, sub }: { go: (href: string, label: s
 
 /** Global search. Results are authorized on the server before they are returned. */
 export function CommandPalette() {
-  const { paletteOpen, setPaletteOpen, recent, pushRecent, markTour } = useUi();
+  const { paletteOpen, setPaletteOpen, recent, pushRecent, markTour, setPendingQuestion } = useUi();
+  const { data: copilot } = useApi<CopilotStatus>(paletteOpen ? "/copilot/status" : null, { retry: false, staleTime: 300_000 });
   useEffect(() => {
     if (paletteOpen) markTour("search");
   }, [paletteOpen, markTour]);
@@ -74,6 +76,13 @@ export function CommandPalette() {
     setPaletteOpen(false);
     setQ("");
     router.push(href);
+  };
+  /** Hands the typed text to Ask the Mesh in memory: questions never go into recents or the URL. */
+  const askMesh = (question: string) => {
+    setPendingQuestion(question.trim() || null);
+    setPaletteOpen(false);
+    setQ("");
+    router.push("/ask");
   };
   const r = debounced.length >= 2 ? data?.results : undefined;
   const ic = (C: typeof Search) => <C className="h-4 w-4" aria-hidden />;
@@ -100,6 +109,13 @@ export function CommandPalette() {
                     </Command.Group>
                   )}
                   <Command.Group heading="Jump to" className={group}>
+                    {copilot?.enabled && (
+                      <Command.Item value="page-ask-the-mesh" onSelect={() => askMesh("")} className={item}>
+                        <span className="text-faint">{ic(Sparkles)}</span>
+                        <span className="min-w-0 flex-1 truncate">Ask the Mesh</span>
+                        <span className="shrink-0 text-[11.5px] text-muted">AI copilot</span>
+                      </Command.Item>
+                    )}
                     <Row go={go} href="/map" label="Company Map" kind="Page" icon={ic(Building2)} />
                     <Row go={go} href="/roadmap" label="Roadmaps" kind="Page" icon={ic(Target)} />
                     <Row go={go} href="/directory" label="Directory" kind="Page" icon={ic(BookUser)} />
@@ -109,6 +125,8 @@ export function CommandPalette() {
               ) : (
                 <>
                   <Command.Empty className="py-10 text-center text-[13px] text-muted">No results you have access to.</Command.Empty>
+                  {/* With the Ask row present cmdk never shows Empty, so say it ourselves once the search has answered. */}
+                  {copilot?.enabled && data && !isFetching && data.total === 0 && <p className="px-4 pb-2 pt-6 text-center text-[13px] text-muted">No results you have access to.</p>}
                   {!!r?.people?.length && (
                     <Command.Group heading="People" className={group}>
                       {r.people.map((p) => (
@@ -129,6 +147,15 @@ export function CommandPalette() {
                   {!!r?.updates?.length && <Command.Group heading="Updates" className={group}>{r.updates.map((u) => <Row go={go} key={u.id} href={`/updates/${u.id}`} label={u.currentFocus} kind="Update" icon={ic(MessageSquare)} sub={u.author?.name} />)}</Command.Group>}
                   {!!r?.blockers?.length && <Command.Group heading="Blockers" className={group}>{r.blockers.map((b) => <Row go={go} key={b.id} href={`/blockers/${b.id}`} label={b.title} kind="Blocker" icon={ic(OctagonAlert)} />)}</Command.Group>}
                   {!!r?.decisions?.length && <Command.Group heading="Decisions" className={group}>{r.decisions.map((d) => <Row go={go} key={d.id} href={d.meetingId ? `/meetings/${d.meetingId}` : "/decisions"} label={d.title} kind="Decision" icon={ic(Flag)} />)}</Command.Group>}
+                  {copilot?.enabled && (
+                    <Command.Group heading="Ask the Mesh" className={group}>
+                      <Command.Item value="ask-the-mesh-question" onSelect={() => askMesh(q)} className={item}>
+                        <span className="text-faint">{ic(Sparkles)}</span>
+                        <span className="min-w-0 flex-1 truncate">Ask the Mesh: “{q.trim()}”</span>
+                        <span className="shrink-0 text-[11.5px] text-muted">AI answer</span>
+                      </Command.Item>
+                    </Command.Group>
+                  )}
                 </>
               )}
             </Command.List>
