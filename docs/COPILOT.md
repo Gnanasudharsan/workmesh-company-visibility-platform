@@ -1,7 +1,7 @@
 # Ask the Mesh — permission-safe copilot
 
-> Status: **Phase 1 — permission-safe tool layer implemented** (no model yet). Each phase updates
-> this file and [PROGRESS.md](../PROGRESS.md) as it lands.
+> Status: **Phase 2 — agent loop, providers and `POST /api/copilot/ask` implemented** (API and CLI;
+> no UI yet). Each phase updates this file and [PROGRESS.md](../PROGRESS.md) as it lands.
 
 Ask the Mesh answers natural-language questions about the company ("What's blocking Checkout Launch?",
 "What is Maya working on?") from WorkMesh records, with a citation for every claim. It is an **optional
@@ -54,10 +54,10 @@ Module layout (`apps/api/src/modules/copilot/`):
 | `facade.ts` | `CopilotReadFacade.forRequest(ctx)` → a frozen object of 10 read methods with the request's `AuthContext` already bound. Tools never get a service instance, `Db`, a Prisma client or the execution context (enforced by a unit test over the tool sources). |
 | `tools/*.ts` | Zod input schema (strict: unknown keys rejected), description, `run(api, input)` → minimal fields. Every record carries `type`, `id` and, when citable, `title`. |
 | `tool-runner.ts` | Validates input with Zod, runs the tool in its own `READ ONLY` tenant transaction with the request's `AuthContext`/`ViewerScope`, maps 404s to `{ found: false }`, adds returned records to the request's `CitationLedger`, logs metadata only. |
-| `providers/*.ts` | `CopilotProvider` interface + `fake` (scripted, tests only, refused in production), `ollama` (local default), `anthropic` (optional). HTTP via `fetch`; no SDKs, no LangChain. |
-| `agent.ts` | Tool-calling loop, bounded by `COPILOT_MAX_TOOL_CALLS` and `COPILOT_TIMEOUT_MS`. |
-| `prompt.ts` | System prompt built from the invariants above. |
-| `citations.ts` | Parses citation tokens, validates them against the ledger, renumbers to `[n]`, builds `href`s server-side. |
+| `providers/*.ts` | Provider-neutral `CopilotProvider` interface with three adapters: `fake` (scripted; tests, CI and demos; refused in production), `ollama` (local default, `fetch` to `/api/chat`, temperature 0), `anthropic` (optional; the official `@anthropic-ai/sdk`, pinned to `1.3.0`; one Messages call per turn with effort `medium` and `fallbacks: "default"` refusal fallbacks on current models, passing the full assistant content, including thinking blocks, back unchanged). No LangChain. |
+| `agent.ts` | Single-turn tool-calling loop, bounded by `COPILOT_MAX_TOOL_CALLS` (then budget-exhausted results, then the loop ends) and `COPILOT_TIMEOUT_MS` (aborts the model call; 504). Invalid tool input from the model goes back to it as an error result. |
+| `prompt.ts` | System prompt built from the invariants above, and `wrapToolResult`, which JSON-escapes `<`/`>` so employee text can't close or forge the `<tool_result>` tag. |
+| `citations.ts` | Keeps `[[type:id]]` tokens whose id is in this request's ledger (the ledger's type wins), renumbers them `[1]`, `[2]`… by first use, builds `href`s from a server-side route map, and strips invented or unreturned ids, bare ids, self-numbered `[n]`, links, images and HTML. With no citations left, it returns the standard answer. |
 | `copilot.controller.ts` | DEMO-only `GET /api/copilot/dev/tools` and `POST /api/copilot/dev/tools/:name` (Phase 1); `POST /api/copilot/ask` (Phase 2). |
 
 ### Transaction boundary
@@ -137,8 +137,9 @@ result and the records it added to the citation ledger.
 
 ## Request flow (`POST /api/copilot/ask`)
 
-1. Throttler (`COPILOT_RATE_LIMIT_PER_MINUTE`), `AuthGuard`, `CsrfGuard`. Then `404` unless `COPILOT_ENABLED`.
-2. Zod: `{ question: string.trim().min(1).max(500) }`.
+1. Throttler (`COPILOT_RATE_LIMIT_PER_MINUTE`), `AuthGuard`, `CsrfGuard`. Then `404` unless `COPILOT_ENABLED`,
+   checked before validation, so a disabled deployment reveals nothing.
+2. Zod: `z.strictObject({ question: string.trim().min(1).max(500) })`. v1 is single-turn: any other key is a 400.
 3. Agent loop: system prompt + question, then `provider.chat(messages, toolSchemas)`. Each tool call goes through
    the `ToolRunner`. The results go back to the model inside a data envelope (`<tool_result untrusted="true">…`).
    The loop stops at `COPILOT_MAX_TOOL_CALLS` or `COPILOT_TIMEOUT_MS`.
@@ -147,8 +148,34 @@ result and the records it added to the citation ledger.
    `citations[] = { n, type, id, title, href }`. The title comes from the ledger and the href from a server-side route map,
    never from the model.
 5. Zero valid citations → `answer = "I couldn't find anything about that in WorkMesh."`, `citations = []`.
-6. Response: `{ answer, citations, toolCalls, latencyMs, model }`. The `toolCalls` field holds names and counts only.
-7. Log: `{ memberId, tools: [...], toolCalls, citations, latencyMs, model, outcome }`. No text.
+6. Response: `{ answer, citations, toolCalls: [{ name, found }], latencyMs, model }`. No answer caching.
+7. Log: `{ event: "copilot.ask", memberId, model, tools, toolCalls, citations, stripped, latencyMs, outcome }`, where
+   `outcome` is `answered`, `not_found`, `timeout` or `error`. No question, tool-result or answer text.
+8. Errors: `504 COPILOT_TIMEOUT`, `503 COPILOT_UNAVAILABLE` (model unreachable or failed; no details), `429` from the throttler.
+
+A question the copilot declines, such as ranking people, ends with no citations, so it also returns the standard
+answer. That keeps one fixed answer for every "nothing to show" case.
+
+```bash
+pnpm copilot:try --as daniel --ask "What's blocking Checkout Launch?"
+```
+
+### Tests (Phase 2)
+
+All of these use the scripted fake provider; no test calls a real model.
+
+- `src/modules/copilot/citations.spec.ts` (unit, 13): renumbering and server-built hrefs; invented, unreturned and
+  bare ids stripped; the standard answer when nothing valid remains; links, images and HTML removed; tolerance for
+  citation drift; the ledger records each cited record's project and person; the untrusted wrapper can't be closed
+  from inside and still parses; the prompt contains each rule; the Ollama and Anthropic adapters' request and
+  response mapping, with `fetch` mocked; the fake provider refused in production.
+- `test/copilot-ask.int.spec.ts` (integration, 12): citations and response shape; a real-but-unreturned id
+  (Project Atlas, for Maya) stripped; the standard answer for zero citations and for a declined question; Atlas ≡
+  Project Zephyr through the whole ask path for Maya, Daniel, Priya, Sam and Noah; the tool-result envelope and
+  escaping, with a `</tool_result>`-forging update; invalid tool input fed back; the tool budget; the timeout (504);
+  model failure (503); auth (401), CSRF and origin (403), validation (400), `COPILOT_ENABLED` (404 even for invalid
+  input); logs carry metadata only.
+- `test/copilot-ratelimit.int.spec.ts` (integration, 1): the 4th question in a minute at a limit of 3 gets a 429.
 
 ## Threat model
 
@@ -166,18 +193,18 @@ result and the records it added to the citation ledger.
 | **Cost / DoS** | Scripted 500-char questions in a loop | Per-member rate limit, 500-char cap, max tool calls, timeout, bounded tool output sizes. | Phase 2 rate-limit test |
 | **Timing side channel** | Restricted lookups take measurably longer | Accepted residual risk, the same as the existing API. Search excludes rows in SQL, so work per query is similar. | — |
 
-## Configuration (added in Phase 2)
+## Configuration
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `COPILOT_ENABLED` | `false` | Master switch; endpoints return 404 when off |
-| `COPILOT_PROVIDER` | `ollama` | `ollama`, `anthropic`, or `fake` (tests; refused in production) |
-| `COPILOT_MODEL` | *(a local tool-calling model)* | Model name for the provider |
+| `COPILOT_PROVIDER` | `ollama` | `ollama`, `anthropic`, or `fake` (scripted; tests and demos; refused in production) |
+| `COPILOT_MODEL` | `qwen2.5:7b-instruct` (ollama), `claude-opus-5-5` (anthropic) | Model name for the provider |
 | `OLLAMA_URL` | `http://localhost:11434` | Local Ollama endpoint |
-| `ANTHROPIC_API_KEY` | — | Only needed for `anthropic` |
+| `ANTHROPIC_API_KEY` | — | Only for `anthropic`. If empty, the SDK's other credential sources are used |
 | `COPILOT_MAX_TOOL_CALLS` | `6` | Tool-call budget per question |
 | `COPILOT_TIMEOUT_MS` | `45000` | Whole-request budget |
-| `COPILOT_RATE_LIMIT_PER_MINUTE` | `10` | Per-client limit on `/copilot/ask` |
+| `COPILOT_RATE_LIMIT_PER_MINUTE` | `10` | Per-client limit on each copilot endpoint |
 
 ## Phase plan
 

@@ -27,9 +27,11 @@ import { DashboardController } from "./dashboard/dashboard.controller";
 import { DashboardService } from "./dashboard/dashboard.service";
 import { DirectoryService } from "./dashboard/directory.service";
 import { SearchService } from "./search/search.service";
+import { CopilotAgent } from "./copilot/agent";
 import { CopilotController } from "./copilot/copilot.controller";
+import { CopilotProviders, FakeCopilotProvider } from "./copilot/providers";
 import { CopilotReadFacade } from "./copilot/facade";
 import { CopilotToolRunner } from "./copilot/tool-runner";
 
 export const FEATURE_CONTROLLERS: Type<unknown>[] = [WorkController, UpdatesController, GraphController, MeetingsController, NotificationsController, DashboardController, CopilotController];
-export const FEATURE_PROVIDERS: Provider[] = [ChangesService, ProjectMetricsService, ProjectsService, ItemsService, GoalsService, UpdatesService, BlockersService, DependenciesService, GraphService, MeetingsService, RealtimePublisher, DeliveryService, WorkerService, RealtimeGateway, SearchService, DirectoryService, DashboardService, AdminService, CopilotReadFacade, CopilotToolRunner];
+export const FEATURE_PROVIDERS: Provider[] = [ChangesService, ProjectMetricsService, ProjectsService, ItemsService, GoalsService, UpdatesService, BlockersService, DependenciesService, GraphService, MeetingsService, RealtimePublisher, DeliveryService, WorkerService, RealtimeGateway, SearchService, DirectoryService, DashboardService, AdminService, CopilotReadFacade, CopilotToolRunner, FakeCopilotProvider, CopilotProviders, CopilotAgent];

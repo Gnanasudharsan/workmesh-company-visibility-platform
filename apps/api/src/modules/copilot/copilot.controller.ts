@@ -8,6 +8,7 @@ import { notFound } from "../../common/errors";
 import { requireOrg, type RequestAuth } from "../../common/request-auth";
 import { config } from "../../config";
 import { isDemo } from "../auth/auth.controller";
+import { CopilotAgent, type AskResult } from "./agent";
 import { CitationLedger, CopilotToolRunner, type CopilotAuth } from "./tool-runner";
 import { TOOLS } from "./tools";
 
@@ -24,9 +25,33 @@ export function copilotAuth(auth: RequestAuth, req: Request): CopilotAuth {
   return { orgId: a.orgId, membershipId: a.membershipId, ctx: a.ctx, scope: a.scope, requestId };
 }
 
+/** v1 is single-turn: a question and nothing else (no history, no options). */
+export const askSchema = z.strictObject({ question: z.string().trim().min(1, "Ask a question").max(500, "Keep questions under 500 characters") });
+
 @Controller("copilot")
 export class CopilotController {
-  constructor(private readonly runner: CopilotToolRunner) {}
+  constructor(
+    private readonly runner: CopilotToolRunner,
+    private readonly agent: CopilotAgent,
+  ) {}
+
+  /**
+   * Answers one question from WorkMesh records the signed-in user can see, with server-validated
+   * citations. 404 when the copilot is off — checked before input validation, so a disabled
+   * deployment reveals nothing about the endpoint.
+   */
+  @Post("ask")
+  @HttpCode(200)
+  @NoRequestTransaction()
+  @Throttle(copilotLimit())
+  async ask(@Auth() auth: RequestAuth, @Req() req: Request, @Body() body: unknown): Promise<AskResult> {
+    if (!copilotEnabled()) throw notFound();
+    const parsed = askSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new BadRequestException({ code: "VALIDATION_FAILED", message: "Some fields are invalid", issues: parsed.error.issues.map((i) => ({ path: i.path.join("."), message: i.message })) });
+    }
+    return this.agent.ask(copilotAuth(auth, req), parsed.data.question);
+  }
 
   /* ------------------- local development only (DEMO_MODE + COPILOT_ENABLED) ------------------- */
 

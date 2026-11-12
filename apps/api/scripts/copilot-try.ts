@@ -4,10 +4,12 @@
  *   pnpm copilot:try --list
  *   pnpm copilot:try --as maya --tool search_records --input '{"query":"checkout"}'
  *   pnpm copilot:try --as daniel --tool project_blockers --input '{"project":"Checkout Launch"}'
+ *   pnpm copilot:try --as daniel --ask "What's blocking Checkout Launch?"
  *
  * Signs in through the real login flow (POST /api/auth/login → session + CSRF cookies) with the
  * password from the git-ignored .demo-credentials.json, then calls the DEMO_MODE-only tool endpoint
- * with the CSRF header. Requires DEMO_MODE=true and COPILOT_ENABLED=true in the API's environment.
+ * with the CSRF header (DEMO_MODE=true and COPILOT_ENABLED=true). `--ask` calls POST /api/copilot/ask,
+ * the endpoint the web app uses, which needs only COPILOT_ENABLED=true.
  */
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -75,7 +77,7 @@ export async function call(session: Session, method: "GET" | "POST", path: strin
   });
   const text = await res.text();
   if (res.status === 404 && path.startsWith("/copilot/")) {
-    fail(`${path} returned 404 — is the API running with DEMO_MODE=true and COPILOT_ENABLED=true?\n${text}`);
+    fail(`${path} returned 404 — is the API running with COPILOT_ENABLED=true${path.includes("/dev/") ? " and DEMO_MODE=true" : ""}?\n${text}`);
   }
   if (!res.ok) fail(`${method} ${path} → ${res.status}\n${text}`);
   return JSON.parse(text) as unknown;
@@ -91,8 +93,25 @@ async function main() {
     return;
   }
 
+  const question = arg("ask");
+  if (question !== undefined) {
+    const out = (await call(session, "POST", "/copilot/ask", { question })) as {
+      answer: string;
+      citations: Array<{ n: number; type: string; title: string; href: string }>;
+      toolCalls: Array<{ name: string; found: boolean }>;
+      latencyMs: number;
+      model: string;
+    };
+    console.log(`\n${out.answer}\n`);
+    for (const c of out.citations) console.log(`  [${c.n}] ${c.type} · ${c.title} → ${c.href}`);
+    console.log(`\ntools: ${out.toolCalls.map((t) => `${t.name}${t.found ? "" : " (nothing found)"}`).join(", ") || "none"}`);
+    console.log(`model: ${out.model} · ${out.latencyMs} ms`);
+    if (process.argv.includes("--json")) console.log(JSON.stringify(out, null, 2));
+    return;
+  }
+
   const tool = arg("tool");
-  if (!tool) fail("pass --tool <name> (or --list to see the tools)");
+  if (!tool) fail("pass --ask \"<question>\", --tool <name>, or --list");
   let input: unknown = {};
   const raw = arg("input");
   if (raw) {

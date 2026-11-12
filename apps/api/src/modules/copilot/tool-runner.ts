@@ -14,23 +14,42 @@ export interface CopilotAuth {
   requestId: string;
 }
 
+/** A citable record plus the project and person it belongs to, as the tool result showed them. */
+export interface LedgerRecord extends RecordRef {
+  projectId?: string;
+  personId?: string;
+}
+
 /**
- * Records every (type, id, title) a tool returned during one request. Phase 2 validates answer
- * citations against it: a model may only cite what the viewer's own tools gave it.
+ * Records every (type, id, title) a tool returned during one request. Answer citations are
+ * validated against it: a model may only cite what the viewer's own tools gave it.
  */
 export class CitationLedger {
-  private readonly records = new Map<string, RecordRef>();
+  private readonly records = new Map<string, LedgerRecord>();
+  private readonly ids = new Map<string, LedgerRecord>();
 
-  add(r: RecordRef) {
+  add(r: LedgerRecord) {
     const key = `${r.type}:${r.id}`;
-    if (!this.records.has(key)) this.records.set(key, r);
+    const existing = this.records.get(key);
+    if (existing) {
+      existing.projectId ??= r.projectId;
+      existing.personId ??= r.personId;
+      return;
+    }
+    this.records.set(key, r);
+    if (!this.ids.has(r.id)) this.ids.set(r.id, r);
   }
 
-  get(type: string, id: string): RecordRef | undefined {
+  get(type: string, id: string): LedgerRecord | undefined {
     return this.records.get(`${type}:${id}`);
   }
 
-  all(): RecordRef[] {
+  /** Lookup by id alone, so a model that mislabels a record's type still cites the real record. */
+  byId(id: string): LedgerRecord | undefined {
+    return this.ids.get(id);
+  }
+
+  all(): LedgerRecord[] {
     return [...this.records.values()];
   }
 }
@@ -41,17 +60,33 @@ export type ToolRun =
 
 const TYPES = new Set<string>(RECORD_TYPES);
 
-/** Walks a tool result and registers every titled record in the ledger. */
-export function collectRecords(value: unknown, ledger: CitationLedger, depth = 0): number {
+const refId = (v: unknown, type: string): string | undefined => {
+  const o = v as { type?: unknown; id?: unknown } | null;
+  return o && o.type === type && typeof o.id === "string" ? o.id : undefined;
+};
+
+/**
+ * Walks a tool result and registers every titled record in the ledger, with the project it sits
+ * under (its own `project`/`projectId`, an enclosing project, or the result's top-level project)
+ * and the person it's about (author, owner, reporter).
+ */
+export function collectRecords(value: unknown, ledger: CitationLedger, depth = 0, projectCtx?: string): number {
   if (depth > 8 || value === null || typeof value !== "object") return 0;
-  if (Array.isArray(value)) return value.reduce<number>((n, v) => n + collectRecords(v, ledger, depth + 1), 0);
+  if (Array.isArray(value)) return value.reduce<number>((n, v) => n + collectRecords(v, ledger, depth + 1, projectCtx), 0);
   const o = value as Record<string, unknown>;
+  if (depth === 0) projectCtx = refId(o.project, "project") ?? projectCtx;
   let n = 0;
+  let childCtx = projectCtx;
   if (typeof o.type === "string" && TYPES.has(o.type) && typeof o.id === "string" && typeof o.title === "string") {
-    ledger.add({ type: o.type as RecordType, id: o.id, title: o.title });
+    const type = o.type as RecordType;
+    if (type === "project") childCtx = o.id;
+    const own = refId(o.project, "project") ?? (typeof o.projectId === "string" ? o.projectId : undefined) ?? refId(o.downstream, "project");
+    const projectId = type === "project" ? undefined : (own ?? (["milestone", "update", "blocker", "work_item", "dependency", "change"].includes(type) ? projectCtx : undefined));
+    const personId = type === "person" ? undefined : (refId(o.author, "person") ?? refId(o.owner, "person") ?? refId(o.reporter, "person"));
+    ledger.add({ type, id: o.id, title: o.title, ...(projectId ? { projectId } : {}), ...(personId ? { personId } : {}) });
     n++;
   }
-  for (const v of Object.values(o)) n += collectRecords(v, ledger, depth + 1);
+  for (const v of Object.values(o)) n += collectRecords(v, ledger, depth + 1, childCtx);
   return n;
 }
 
