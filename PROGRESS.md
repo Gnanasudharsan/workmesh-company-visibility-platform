@@ -56,6 +56,22 @@ Only verified work is recorded here. Each milestone lists what was run and the r
 No new API endpoints were needed: every chart is built from the existing permission-filtered
 dashboard payloads (`/dashboard/employee`, `/dashboard/manager`, `/dashboard/leadership`, `/dependencies`).
 
+## Ask the Mesh — permission-safe copilot (fork feature)
+
+Design and threat model: [docs/COPILOT.md](docs/COPILOT.md). Off by default (`COPILOT_ENABLED=false`).
+Branch `feat/ask-the-mesh`.
+
+| # | Milestone | Verification | Commit |
+| --- | --- | --- | --- |
+| C0 | Recon, design, tool → service map, threat model, phase plan | Baseline (2026-11-12, Node 26.8.2): core 91/91, API 54/54, web 18/18; lint 0 errors; typecheck clean; `make docs-check` 7/7 | (this commit) |
+
+Local environment notes (no repo changes):
+- Node 25+ ships a built-in `localStorage` that shadows jsdom's and breaks zustand `persist` in web tests;
+  run with `NODE_OPTIONS=--no-experimental-webstorage` (CI uses Node 22 and is unaffected).
+- The Prisma CLI reads `apps/api/.env`, not the root `.env`; export the root `.env` into the shell
+  (`set -a; source .env; set +a`) before `make migrate`/`make seed`. Run `prisma generate` before the first seed.
+- corepack isn't bundled with Node 25+; `make … PNPM="npx --yes corepack pnpm"` works without a global install.
+
 ## Known issues / notes
 
 - Integration suites share one test database and must run serially (`--runInBand`, already the default script).
