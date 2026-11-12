@@ -71,8 +71,9 @@ describe("POST /api/copilot/ask", () => {
     const res = await ask("daniel", "What's blocking Checkout Launch?").expect(200);
     expect(res.body.answer).toMatch(/^Checkout Launch is at risk \[1\]\. Leo is investigating .+ \[2\]\.$/);
     expect(res.body.citations).toEqual([
-      { n: 1, type: "project", id: P().CHK, title: "Checkout Launch", href: `/projects/${P().CHK}` },
-      { n: 2, type: "blocker", id: expect.any(String), title: expect.any(String), href: expect.stringMatching(/^\/blockers\/[0-9a-f-]{36}$/) },
+      { n: 1, type: "project", id: P().CHK, title: "Checkout Launch", href: `/projects/${P().CHK}`, map: { mode: "work", node: `project:${P().CHK}` } },
+      // A blocker isn't a map node: it points at its project.
+      { n: 2, type: "blocker", id: expect.any(String), title: expect.any(String), href: expect.stringMatching(/^\/blockers\/[0-9a-f-]{36}$/), map: { mode: "work", node: `project:${P().CHK}` } },
     ]);
     expect(res.body.toolCalls).toEqual([
       { name: "get_project", found: true },
@@ -247,6 +248,32 @@ describe("POST /api/copilot/ask", () => {
     } finally {
       [...spies, ...statics].forEach((s) => s.mockRestore());
     }
+  });
+
+  it("every cited record's map target is a node in the viewer's own authorized graph", async () => {
+    fake.setScript(
+      steps(
+        () => ({
+          content: "",
+          toolCalls: [
+            { id: "a", name: "person_work", arguments: { person: "Maya Chen" } },
+            { id: "b", name: "get_project", arguments: { project: "Checkout Launch" } },
+            { id: "c", name: "find_helpers", arguments: { topic: "payments" } },
+          ],
+        }),
+        (t) => say(found(t).map((r) => `${r.title} [[${r.type}:${r.id}]]`).join("\n")),
+      ),
+    );
+    const res = await ask("daniel", "Everything about Maya and Checkout").expect(200);
+    const targets = res.body.citations.map((x: { map: { mode: string; node: string; expand?: string } | null }) => x.map).filter(Boolean);
+    expect(targets.length).toBeGreaterThan(5);
+    const work = (await c.daniel.get(`/api/graph/work?expand=${[...new Set(targets.map((t: { expand?: string }) => t.expand).filter(Boolean))].join(",")}`).expect(200)).body as { nodes: Array<{ id: string }> };
+    const teams = (await c.daniel.get("/api/teams").expect(200)).body as Array<{ id: string }>;
+    const people = (await c.daniel.get(`/api/graph/people?expand=${teams.map((t) => t.id).join(",")}`).expect(200)).body as { nodes: Array<{ id: string }> };
+    const nodes = new Set([...work.nodes, ...people.nodes].map((n) => n.id));
+    const missing = targets.filter((t: { node: string }) => !nodes.has(t.node)).map((t: { node: string }) => t.node);
+    expect(missing).toEqual([]);
+    expect(new Set(targets.map((t: { mode: string }) => t.mode))).toEqual(new Set(["work", "people"]));
   });
 
   it("GET /api/copilot/status: 404 when off; suggestions only for granted workspaces, built from visible records", async () => {

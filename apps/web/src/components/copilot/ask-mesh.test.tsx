@@ -33,8 +33,8 @@ const status: CopilotStatus = {
 const answer: CopilotAnswer = {
   answer: "Checkout Launch is **at risk** [1].\n\n- Tax provider rate limits [2]\n- Waiting on payments [1]",
   citations: [
-    { n: 1, type: "project", id: P, title: "Checkout Launch", href: `/projects/${P}` },
-    { n: 2, type: "blocker", id: B, title: "Tax provider rate limits in staging", href: `/blockers/${B}` },
+    { n: 1, type: "project", id: P, title: "Checkout Launch", href: `/projects/${P}`, map: { mode: "work", node: `project:${P}` } },
+    { n: 2, type: "blocker", id: B, title: "Tax provider rate limits in staging", href: `/blockers/${B}`, map: { mode: "work", node: `project:${P}` } },
   ],
   toolCalls: [{ name: "project_blockers", found: true }],
   latencyMs: 1234,
@@ -95,6 +95,8 @@ describe("Ask the Mesh", () => {
     expect(screen.getByText("at risk").tagName).toBe("STRONG");
     expect(screen.getByText(/1 lookup · 1\.2 s · fake-scripted/)).toBeInTheDocument();
     expect(screen.getByLabelText("Ask a question about your company")).toHaveValue("");
+    // Both sources sit on Checkout Launch's map node, so the map opens on one highlighted project.
+    expect(screen.getByRole("link", { name: "Show 1 cited record on the Company Map" })).toHaveAttribute("href", `/map?mode=work&highlight=project%3A${P}`);
   });
 
   it("shows the standard answer with a hint and no sources", async () => {
@@ -104,6 +106,7 @@ describe("Ask the Mesh", () => {
     expect(await screen.findByText(STANDARD_ANSWER)).toBeInTheDocument();
     expect(screen.getByText("Try naming a project, person, team or goal.")).toBeInTheDocument();
     expect(screen.queryByRole("list", { name: "Sources" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /on the Company Map/ })).not.toBeInTheDocument();
   });
 
   it.each([

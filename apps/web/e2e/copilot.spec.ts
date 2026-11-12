@@ -66,3 +66,63 @@ test("Journey H — a restricted project looks exactly like one that doesn't exi
   await expect(page.getByRole("list", { name: "Sources" })).toHaveCount(0);
   await expect(answers).not.toContainText(/permission|access|restricted|confidential/i);
 });
+
+test("Journey H — Show on map focuses the Company Map on the cited records", async ({ page }) => {
+  await login(page, USERS.daniel);
+  await page.goto("/ask");
+  await composer(page).fill("What's blocking Checkout Launch?");
+  await page.keyboard.press("Enter");
+  await page.getByRole("link", { name: /cited records? on the Company Map/ }).last().click();
+
+  await expect(page).toHaveURL(/\/map\?mode=work&highlight=/);
+  const banner = page.getByRole("region", { name: "Records from Ask the Mesh" });
+  await expect(banner).toContainText(/Showing \d+ records? from your Ask the Mesh answer/);
+  const projects = (await apiGet<Array<{ id: string; key: string }>>(page, "/projects")).body;
+  const chk = projects.find((p) => p.key === "CHK")!;
+  const node = page.locator(`.react-flow__node[data-id="project:${chk.id}"]`);
+  await expect(node.locator("[data-highlighted]")).toBeVisible();
+  await expect(node).toBeInViewport(); // camera focus
+  await expect(page.locator(".react-flow__node [data-dimmed]").first()).toBeAttached(); // everything else is dimmed
+
+  // The banner's chips are keyboard-reachable and open the inspector for that node.
+  await banner.getByRole("button", { name: "Checkout Launch" }).click();
+  await expect(page.getByRole("complementary", { name: "Project details" }).getByRole("heading", { name: "Checkout Launch" })).toBeVisible();
+
+  await banner.getByRole("button", { name: "Clear highlighted records" }).click();
+  await expect(page).toHaveURL(/\/map\?mode=work$/);
+  await expect(banner).toHaveCount(0);
+});
+
+test("Journey H — cited people open on the People map, expanded to show them", async ({ page }) => {
+  await login(page, USERS.daniel);
+  await page.goto("/ask");
+  await composer(page).fill("What is Maya Chen working on?");
+  await page.keyboard.press("Enter");
+  await page.getByRole("link", { name: /cited records? on the Company Map/ }).last().click();
+  const banner = page.getByRole("region", { name: "Records from Ask the Mesh" });
+  await banner.getByRole("button", { name: /1 more on the People map/ }).click();
+  await expect(page).toHaveURL(/mode=people&highlight=/);
+  const people = (await apiGet<Array<{ id: string; name: string }>>(page, "/people")).body;
+  const mayaId = people.find((p) => p.name === "Maya Chen")!.id;
+  const node = page.locator(`.react-flow__node[data-id="person:${mayaId}"]`);
+  await expect(node.locator("[data-highlighted]")).toBeVisible();
+  await expect(node).toBeInViewport();
+  await expect(banner).toContainText("Showing 1 record from your Ask the Mesh answer");
+});
+
+test("Journey H — a highlight can't add a node the server didn't authorize", async ({ page }) => {
+  await login(page, USERS.elena);
+  const all = (await apiGet<Array<{ id: string; key: string }>>(page, "/projects")).body;
+  const atlas = all.find((p) => p.key === "ATL")!;
+  const checkout = all.find((p) => p.key === "CHK")!;
+
+  await login(page, USERS.maya);
+  await page.goto(`/map?mode=work&highlight=project:${atlas.id},project:${checkout.id}`);
+  const banner = page.getByRole("region", { name: "Records from Ask the Mesh" });
+  await expect(banner).toContainText("Showing 1 record from your Ask the Mesh answer");
+  await expect(page.locator(`.react-flow__node[data-id="project:${checkout.id}"] [data-highlighted]`)).toBeVisible();
+  await expect(page.locator(`.react-flow__node[data-id="project:${atlas.id}"]`)).toHaveCount(0);
+  await expect(page.getByText("Project Atlas")).toHaveCount(0);
+  const graph = await apiGet<{ nodes: Array<{ id: string }> }>(page, "/graph/work");
+  expect(graph.body.nodes.map((n) => n.id)).not.toContain(`project:${atlas.id}`);
+});

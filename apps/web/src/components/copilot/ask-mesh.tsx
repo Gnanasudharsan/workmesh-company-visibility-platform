@@ -2,12 +2,13 @@
 
 import { useMutation } from "@tanstack/react-query";
 import type { Workspace } from "@workmesh/core";
-import { AlertCircle, ArrowUp, RefreshCw, SearchX, Sparkles } from "lucide-react";
+import { AlertCircle, ArrowUp, Map as MapIcon, RefreshCw, SearchX, Sparkles } from "lucide-react";
 import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState, Skeleton } from "@/components/ui/feedback";
 import { api, ApiError } from "@/lib/api";
+import { mapLinkFor } from "@/lib/copilot-map";
 import { useApi, useMe } from "@/lib/hooks";
 import { useUi } from "@/lib/store";
 import type { CopilotAnswer, CopilotStatus } from "@/lib/types";
@@ -65,6 +66,18 @@ function Suggestions({ items, onPick, disabled }: { items: string[]; onPick: (q:
   );
 }
 
+/** Opens the Company Map focused on the answer's cited records (or their project or person). */
+function ShowOnMap({ citations }: { citations: CopilotAnswer["citations"] }) {
+  const link = mapLinkFor(citations);
+  if (!link) return null;
+  const total = link.count + link.otherCount;
+  return (
+    <ButtonLink href={link.href} size="sm" variant="secondary" aria-label={`Show ${total} cited ${total === 1 ? "record" : "records"} on the Company Map`}>
+      <MapIcon className="h-3.5 w-3.5" aria-hidden /> Show on map
+    </ButtonLink>
+  );
+}
+
 function TurnView({ turn, onRetry }: { turn: Turn; onRetry: (q: string) => void }) {
   const prefix = `t${turn.id}`;
   return (
@@ -112,9 +125,12 @@ function TurnView({ turn, onRetry }: { turn: Turn; onRetry: (q: string) => void 
               <AnswerText text={turn.result.answer} citations={turn.result.citations} idPrefix={prefix} />
             )}
             <CitationChips citations={turn.result.citations} idPrefix={prefix} />
-            <p className="mt-3 text-[11.5px] text-faint">
-              {turn.result.toolCalls.length} {turn.result.toolCalls.length === 1 ? "lookup" : "lookups"} · {(turn.result.latencyMs / 1000).toFixed(1)} s · {turn.result.model}
-            </p>
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+              <p className="text-[11.5px] text-faint">
+                {turn.result.toolCalls.length} {turn.result.toolCalls.length === 1 ? "lookup" : "lookups"} · {(turn.result.latencyMs / 1000).toFixed(1)} s · {turn.result.model}
+              </p>
+              <ShowOnMap citations={turn.result.citations} />
+            </div>
           </>
         )}
       </Card>

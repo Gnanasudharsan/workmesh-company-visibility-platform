@@ -3,12 +3,44 @@ import type { CitationLedger, LedgerRecord } from "./tool-runner";
 /** The one answer for "nothing to cite". Identical for missing and restricted records. */
 export const STANDARD_ANSWER = "I couldn't find anything about that in WorkMesh.";
 
+/**
+ * Where a cited record sits on the Company Map: a node id in the map's own format, the map mode
+ * that shows it, and a project to expand for milestones. Records that aren't map nodes (updates,
+ * blockers, work items, dependencies, decisions) point at their project, else their person.
+ * The map still renders only the server-authorized graph; a target that isn't in it is ignored.
+ */
+export interface MapTarget {
+  mode: "work" | "people";
+  node: string;
+  expand?: string;
+}
+
 export interface Citation {
   n: number;
   type: string;
   id: string;
   title: string;
   href: string;
+  map: MapTarget | null;
+}
+
+export function mapTarget(r: LedgerRecord): MapTarget | null {
+  switch (r.type) {
+    case "project":
+    case "goal":
+    case "initiative":
+      return { mode: "work", node: `${r.type}:${r.id}` };
+    case "milestone":
+      return r.projectId ? { mode: "work", node: `milestone:${r.id}`, expand: r.projectId } : null;
+    case "person":
+    case "team":
+    case "department":
+      return { mode: "people", node: `${r.type}:${r.id}` };
+    default:
+      if (r.projectId) return { mode: "work", node: `project:${r.projectId}` };
+      if (r.personId) return { mode: "people", node: `person:${r.personId}` };
+      return null;
+  }
 }
 
 const UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
@@ -65,7 +97,7 @@ export function finalizeAnswer(text: string, ledger: CitationLedger): { answer: 
     if (!n) {
       n = citations.length + 1;
       numbers.set(key, n);
-      citations.push({ n, type: rec.type, id: rec.id, title: rec.title, href });
+      citations.push({ n, type: rec.type, id: rec.id, title: rec.title, href, map: mapTarget(rec) });
     }
     return `[${n}]`;
   });

@@ -210,12 +210,22 @@ export interface CopilotStatus {
   suggestions: Partial<Record<Workspace, string[]>>;
 }
 
+/** A cited record's place on the Company Map, computed by the server. */
+export interface CopilotMapTarget {
+  mode: "work" | "people";
+  /** Node id in the map's format, e.g. `project:<uuid>`. */
+  node: string;
+  /** Project to expand so a milestone node appears. */
+  expand?: string;
+}
+
 export interface CopilotCitation {
   n: number;
   type: string;
   id: string;
   title: string;
   href: string;
+  map: CopilotMapTarget | null;
 }
 
 export interface CopilotAnswer {

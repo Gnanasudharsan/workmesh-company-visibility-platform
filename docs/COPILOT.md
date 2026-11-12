@@ -1,7 +1,8 @@
 # Ask the Mesh — permission-safe copilot
 
-> Status: **Phase 3 — Ask the Mesh chat UI implemented** (web page, sidebar, ⌘K) on top of the
-> agent loop and `POST /api/copilot/ask`. Each phase updates this file and [PROGRESS.md](../PROGRESS.md) as it lands.
+> Status: **Phase 4 — "Show on map" implemented**, on top of the chat UI (Phase 3), the agent loop and
+> `POST /api/copilot/ask` (Phase 2) and the tool layer (Phase 1). Each phase updates this file and
+> [PROGRESS.md](../PROGRESS.md) as it lands.
 
 Ask the Mesh answers natural-language questions about the company ("What's blocking Checkout Launch?",
 "What is Maya working on?") from WorkMesh records, with a citation for every claim. It is an **optional
@@ -204,6 +205,43 @@ All of these use the scripted fake provider; no test calls a real model.
   cited record; Priya asks through ⌘K and the question never reaches the URL or localStorage; for Maya, Project
   Atlas and Project Zephyr produce identical answer cards with no sources and no mention of access. `/ask` was
   added to the responsive no-overflow sweep (6 widths).
+
+## Show on map (Phase 4)
+
+Each answer with citations has a **Show on map** button that opens the Company Map focused on the cited records.
+
+1. **Server-side targets.** Every citation carries `map: { mode, node, expand? } | null`, computed in
+   `citations.ts` from the ledger and never from the model:
+
+   | Cited record | Map target |
+   | --- | --- |
+   | project, goal, initiative | Work map: that node |
+   | milestone | Work map: `milestone:<id>`, with its project expanded |
+   | person, team, department | People map: that node |
+   | update, blocker, work item, dependency, decision | Work map: its project; otherwise People map: its person (author, owner or reporter); otherwise none |
+
+2. **The link.** `lib/copilot-map.ts` dedupes the nodes and picks the mode that holds most of them (work wins a
+   tie). It builds `/map?mode=…&highlight=<node ids>&expand=<project ids>`. Only well-formed node ids are put in the
+   URL, at most 20. The question text never is.
+3. **The map.** `map/page.tsx` parses `highlight` with the same validator and keeps only ids that are **already in
+   the graph the server sent** (`/graph/work`, `/graph/people`). A highlight can only highlight; it can never add a
+   node. On the People map it opens departments and expands teams, as *Expand all* does, so cited people appear.
+   It reuses the existing highlight/dim styling and the camera (`fitView` on the cited nodes, instant under
+   reduced motion). A banner lists the highlighted records as buttons that select and centre each one (keyboard
+   and screen-reader friendly). It also offers *N more on the People/Work map* for records on the other mode,
+   and *Clear*.
+
+### Tests (Phase 4)
+
+- `citations.spec.ts` (+14): the target for every record kind, including the project-then-person fallback.
+- `copilot-ask.int.spec.ts` (+1): for an answer citing people, teams, projects, blockers and updates, every map
+  target is a node in Daniel's own `/graph/work` and `/graph/people`.
+- `lib/copilot-map.test.ts` (Vitest, 4): dedupe and mode choice, expand ids, only well-formed ids in the URL,
+  highlight parsing; `ask-mesh.test.tsx`: the button's href and that it's absent without citations.
+- `e2e/copilot.spec.ts` (+3): Show on map highlights and frames Checkout Launch, dims the rest, opens the inspector
+  from the banner and clears; a cited person opens on the People map with teams expanded; for Maya, a hand-made
+  URL highlighting Project Atlas and Checkout Launch shows only Checkout. Atlas never renders and isn't in her
+  `/graph/work`.
 
 ## Threat model
 

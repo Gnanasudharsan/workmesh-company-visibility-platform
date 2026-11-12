@@ -77,8 +77,12 @@ const defaultScript: FakeScript = ({ step, question, messages }) => {
     const words = question.replace(/[^\p{L}\p{N}\s-]/gu, " ").split(/\s+/).filter((w) => /^[A-Z]/.test(w)).slice(0, 3);
     return { content: "", toolCalls: [{ id: "fake_0", name: "search_records", arguments: { query: words.join(" ") || question.slice(0, 100) } }] };
   }
-  const found = lastToolResults(messages).flatMap((r) => recordsIn(r.value));
-  const unique = [...new Map(found.filter((r) => r.type !== "person" && r.type !== "team").map((r) => [r.id, r])).values()].slice(0, 4);
+  const results = lastToolResults(messages);
+  const found = results.flatMap((r) => recordsIn(r.value));
+  // The person a "what is X working on" lookup is about comes first; other people (owners,
+  // authors) and teams are context, not the answer.
+  const subject = results.flatMap((r) => (r.name === "person_work" ? recordsIn((r.value as { person?: unknown }).person).slice(0, 1) : []));
+  const unique = [...new Map([...subject, ...found.filter((r) => r.type !== "person" && r.type !== "team")].map((r) => [r.id, r])).values()].slice(0, 4);
   if (!unique.length) return { content: "I couldn't find anything about that.", toolCalls: [] };
   return { content: `Here's what WorkMesh shows:\n\n${unique.map((r) => `- **${r.title}** [[${r.type}:${r.id}]]`).join("\n")}`, toolCalls: [] };
 };

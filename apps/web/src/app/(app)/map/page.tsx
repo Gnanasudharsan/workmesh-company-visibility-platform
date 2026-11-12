@@ -5,11 +5,11 @@ import {
   Background, BackgroundVariant, Controls, MarkerType, MiniMap, ReactFlow, ReactFlowProvider, useReactFlow, type Edge, type Node,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { ArrowLeft, ChevronsDownUp, ChevronsUpDown, GitBranch, List, Network, Search, Workflow, X } from "lucide-react";
+import { ArrowLeft, ChevronsDownUp, ChevronsUpDown, GitBranch, List, Network, Search, Sparkles, Workflow, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useReducedMotion } from "motion/react";
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { layout, NODE_SIZE, type LayoutKind } from "@/components/map/layout";
 import { NODE_TYPES, type MapNodeData } from "@/components/map/nodes";
 import { MapList } from "@/components/map/map-list";
@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/card";
 import { ErrorState } from "@/components/ui/feedback";
 import { Input, Segmented, Select } from "@/components/ui/form";
+import { modeOf, parseExpand, parseHighlight } from "@/lib/copilot-map";
 import { useApi } from "@/lib/hooks";
 import { useUi } from "@/lib/store";
 import type { Graph, GraphNode } from "@/lib/types";
@@ -91,7 +92,14 @@ function MapCanvas() {
   const [direction, setDirection] = useState<LayoutKind>((params.get("mode") as Mode) === "work" ? "down" : "right");
   const [openDepartments, setOpenDepartments] = useState<string[]>([]);
   const [expanded, setExpanded] = useState<string[]>([]);
-  const [expandedProjects, setExpandedProjects] = useState<string[]>([]);
+  const [expandedProjects, setExpandedProjects] = useState<string[]>(() => parseExpand(params.get("expand")));
+  // Records cited by an Ask the Mesh answer ("Show on map"). Only ids of the map's own nodes are
+  // accepted, and they can only highlight nodes the server already sent — never add any.
+  const highlightParam = params.get("highlight");
+  const highlight = useMemo(() => parseHighlight(highlightParam), [highlightParam]);
+  const highlightSet = useMemo(() => new Set(highlight), [highlight]);
+  const autoOpened = useRef<string | null>(null);
+  const cameraDone = useRef<string | null>(null);
   const [focus, setFocus] = useState<string | null>(params.get("focus"));
   const [department, setDepartment] = useState("");
   const [status, setStatus] = useState("");
@@ -107,6 +115,17 @@ function MapCanvas() {
   const workUrl = `/graph/work?expand=${expandedProjects.join(",")}`;
   const { data: graph, error, isFetching, refetch } = useApi<Graph>(mode === "people" ? peopleUrl : workUrl, { placeholderData: (prev) => prev });
   const { data: departments } = useApi<Array<{ id: string; name: string }>>("/departments");
+
+  // Cited people and teams only exist on the People map once their department/team is open:
+  // open what's needed once per highlight set (the same as pressing "Expand all").
+  useEffect(() => {
+    if (mode !== "people" || !graph || !highlightParam || autoOpened.current === `${mode}|${highlightParam}`) return;
+    const wanted = highlight.filter((h) => modeOf(h) === "people");
+    if (!wanted.length) return;
+    autoOpened.current = `${mode}|${highlightParam}`;
+    if (wanted.some((h) => !h.startsWith("department:"))) setOpenDepartments(graph.nodes.filter((n) => n.type === "department").map((n) => String(n.data.entityId)));
+    if (wanted.some((h) => h.startsWith("person:"))) setExpanded(graph.nodes.filter((n) => n.type === "team").map((n) => String(n.data.entityId)));
+  }, [mode, graph, highlight, highlightParam]);
 
   // Filters are applied to what the server already authorized — never used to hide secrets.
   const filtered = useMemo<Graph | undefined>(() => {
@@ -132,12 +151,18 @@ function MapCanvas() {
     void layout(nodes, edges, direction).then((positioned) => {
       if (cancelled) return;
       setLaidOut({ nodes: positioned, edges });
-      requestAnimationFrame(() => flow.fitView({ padding: 0.15, duration: reduceMotion ? 0 : 400, maxZoom: 1.1 }));
+      // Camera focus on the cited nodes once they're laid out; otherwise frame the whole map.
+      const pins = positioned.filter((n) => highlightSet.has(n.id)).map((n) => ({ id: n.id }));
+      const key = `${mode}|${highlightParam}|${pins.length}`;
+      if (pins.length && cameraDone.current !== key) {
+        cameraDone.current = key;
+        requestAnimationFrame(() => flow.fitView({ nodes: pins, padding: 0.35, duration: reduceMotion ? 0 : 500, maxZoom: 1.1 }));
+      } else requestAnimationFrame(() => flow.fitView({ padding: 0.15, duration: reduceMotion ? 0 : 400, maxZoom: 1.1 }));
     });
     return () => {
       cancelled = true;
     };
-  }, [filtered, mode, direction, showTeams, flow, openDepartments, department, reduceMotion]);
+  }, [filtered, mode, direction, showTeams, flow, openDepartments, department, reduceMotion, highlightSet, highlightParam]);
 
   // Highlight the selection and its neighbors; dim the rest.
   const related = useMemo(() => {
@@ -156,6 +181,12 @@ function MapCanvas() {
     return new Set(laidOut.nodes.filter((n) => n.data.label.toLowerCase().includes(q) || String(n.data.raw.title ?? "").toLowerCase().includes(q)).map((n) => n.id));
   }, [query, laidOut.nodes]);
 
+  /** Cited nodes present in this (authorized) map. Selection and search still take precedence. */
+  const pinned = useMemo(() => laidOut.nodes.filter((n) => highlightSet.has(n.id)), [laidOut.nodes, highlightSet]);
+  const pinnedIds = useMemo(() => new Set(pinned.map((n) => n.id)), [pinned]);
+  const otherMode = mode === "work" ? "people" : "work";
+  const otherCount = highlight.filter((h) => modeOf(h) === otherMode).length;
+
   const nodes = useMemo(
     () =>
       laidOut.nodes.map((n) => ({
@@ -163,11 +194,11 @@ function MapCanvas() {
         data: {
           ...n.data,
           selected: selected?.id === n.id,
-          highlighted: (related?.has(n.id) ?? false) || (matches?.has(n.id) ?? false),
-          dimmed: (related ? !related.has(n.id) : false) || (matches ? !matches.has(n.id) : false),
+          highlighted: (related?.has(n.id) ?? false) || (matches?.has(n.id) ?? false) || (!related && pinnedIds.has(n.id)),
+          dimmed: related ? !related.has(n.id) : matches ? !matches.has(n.id) : pinnedIds.size > 0 && !pinnedIds.has(n.id),
         },
       })),
-    [laidOut.nodes, selected, related, matches],
+    [laidOut.nodes, selected, related, matches, pinnedIds],
   );
   const edges = useMemo(() => laidOut.edges.map((e) => ({ ...e, style: { ...e.style, opacity: related && !(related.has(e.source) && related.has(e.target)) ? 0.15 : 1 } })), [laidOut.edges, related]);
 
@@ -199,6 +230,19 @@ function MapCanvas() {
     [graph, mode, select, flow, reduceMotion],
   );
 
+  const focusNode = (id: string) => {
+    const n = laidOut.nodes.find((x) => x.id === id);
+    if (n) flow.setCenter(n.position.x + (n.width ?? 220) / 2, n.position.y + (n.height ?? 80) / 2, { zoom: Math.max(flow.getZoom(), 0.9), duration: reduceMotion ? 0 : 450 });
+    select(graph?.nodes.find((x) => x.id === id) ?? null);
+  };
+  const clearHighlight = () => router.replace(`/map?mode=${mode}`);
+  const showOtherMode = () => {
+    setMode(otherMode);
+    setSelected(null);
+    setHistory([]);
+    router.replace(`/map?${new URLSearchParams({ mode: otherMode, highlight: highlight.join(","), ...(expandedProjects.length ? { expand: expandedProjects.join(",") } : {}) }).toString()}`);
+  };
+
   const jumpToMatch = () => {
     const first = matches && [...matches][0];
     if (!first) return;
@@ -223,6 +267,31 @@ function MapCanvas() {
           </>
         }
       />
+      {highlight.length > 0 && (
+        <section aria-label="Records from Ask the Mesh" className="mb-3 flex flex-wrap items-center gap-2 rounded-[var(--radius-card)] border border-teal/25 bg-teal-soft/60 px-3 py-2 text-[12.5px] text-ink-soft">
+          <Sparkles className="h-4 w-4 shrink-0 text-teal-ink" aria-hidden />
+          <span className="font-medium text-ink">{pinned.length ? `Showing ${pinned.length} ${pinned.length === 1 ? "record" : "records"} from your Ask the Mesh answer` : laidOut.nodes.length ? "Records from your Ask the Mesh answer aren't on this map view" : "Finding the records from your Ask the Mesh answer…"}</span>
+          <ul className="flex min-w-0 flex-wrap gap-1.5" aria-label="Highlighted records">
+            {pinned.map((n) => (
+              <li key={n.id} className="min-w-0 max-w-full">
+                <button type="button" onClick={() => focusNode(n.id)} className="max-w-full truncate rounded-full border border-teal/30 bg-surface px-2.5 py-0.5 text-[12px] font-medium text-ink hover:border-teal">
+                  {n.data.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+          <span className="ml-auto flex items-center gap-1.5">
+            {otherCount > 0 && (
+              <Button size="xs" variant="soft" onClick={showOtherMode}>
+                {otherCount} more on the {otherMode === "people" ? "People" : "Work"} map
+              </Button>
+            )}
+            <Button size="xs" variant="ghost" onClick={clearHighlight} aria-label="Clear highlighted records">
+              <X className="h-3.5 w-3.5" aria-hidden /> Clear
+            </Button>
+          </span>
+        </section>
+      )}
       <div className="flex flex-wrap items-center gap-2 rounded-t-[var(--radius-panel)] border border-b-0 border-line bg-surface px-3 py-2.5">
         <div className="relative w-full sm:w-64">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-faint" aria-hidden />

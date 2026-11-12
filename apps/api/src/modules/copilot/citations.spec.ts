@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { resetConfigCache, config } from "../../config";
-import { finalizeAnswer, STANDARD_ANSWER } from "./citations";
+import { finalizeAnswer, mapTarget, STANDARD_ANSWER } from "./citations";
 import { wrapToolResult, systemPrompt } from "./prompt";
 import { AnthropicProvider } from "./providers/anthropic";
 import { lastToolResults } from "./providers/fake";
@@ -32,8 +32,8 @@ describe("citation validation", () => {
     const { answer, citations, stripped } = finalizeAnswer(`Checkout is at risk [[project:${P}]]. It's blocked by tax limits [[blocker:${B}]] (see also [[project:${P}]]).`, ledger());
     expect(answer).toBe("Checkout is at risk [1]. It's blocked by tax limits [2] (see also [1]).");
     expect(citations).toEqual([
-      { n: 1, type: "project", id: P, title: "Checkout Launch", href: `/projects/${P}` },
-      { n: 2, type: "blocker", id: B, title: "Tax rate limits", href: `/blockers/${B}` },
+      { n: 1, type: "project", id: P, title: "Checkout Launch", href: `/projects/${P}`, map: { mode: "work", node: `project:${P}` } },
+      { n: 2, type: "blocker", id: B, title: "Tax rate limits", href: `/blockers/${B}`, map: { mode: "work", node: `project:${P}` } },
     ]);
     expect(stripped).toBe(0);
   });
@@ -74,6 +74,31 @@ describe("citation validation", () => {
     expect(l.get("milestone", M)).toMatchObject({ projectId: P });
     expect(l.get("blocker", B)).toMatchObject({ projectId: P, personId: PERSON });
     expect(l.get("update", U)).toMatchObject({ projectId: P, personId: PERSON });
+  });
+});
+
+describe("map targets", () => {
+  const id = randomUUID();
+  const proj = randomUUID();
+  const who = randomUUID();
+  it.each([
+    [{ type: "project", id, title: "x" }, { mode: "work", node: `project:${id}` }],
+    [{ type: "goal", id, title: "x" }, { mode: "work", node: `goal:${id}` }],
+    [{ type: "initiative", id, title: "x" }, { mode: "work", node: `initiative:${id}` }],
+    [{ type: "milestone", id, title: "x", projectId: proj }, { mode: "work", node: `milestone:${id}`, expand: proj }],
+    [{ type: "milestone", id, title: "x" }, null],
+    [{ type: "person", id, title: "x" }, { mode: "people", node: `person:${id}` }],
+    [{ type: "team", id, title: "x" }, { mode: "people", node: `team:${id}` }],
+    [{ type: "department", id, title: "x" }, { mode: "people", node: `department:${id}` }],
+    // Records that aren't map nodes point at their project, else their person.
+    [{ type: "update", id, title: "x", projectId: proj, personId: who }, { mode: "work", node: `project:${proj}` }],
+    [{ type: "update", id, title: "x", personId: who }, { mode: "people", node: `person:${who}` }],
+    [{ type: "blocker", id, title: "x", projectId: proj }, { mode: "work", node: `project:${proj}` }],
+    [{ type: "work_item", id, title: "x", projectId: proj }, { mode: "work", node: `project:${proj}` }],
+    [{ type: "dependency", id, title: "x", projectId: proj }, { mode: "work", node: `project:${proj}` }],
+    [{ type: "decision", id, title: "x" }, null],
+  ] as const)("%o → %o", (rec, expected) => {
+    expect(mapTarget(rec as Parameters<typeof mapTarget>[0])).toEqual(expected);
   });
 });
 

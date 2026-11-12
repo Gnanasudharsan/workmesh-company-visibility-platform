@@ -48,9 +48,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(({ className, v
 ));
 Button.displayName = "Button";
 
-export function ButtonLink({ href, className, variant, size, children }: { href: string; className?: string; children: React.ReactNode } & VariantProps<typeof buttonVariants>) {
+export function ButtonLink({ href, className, variant, size, children, "aria-label": ariaLabel }: { href: string; className?: string; children: React.ReactNode; "aria-label"?: string } & VariantProps<typeof buttonVariants>) {
   return (
-    <Link href={href} className={cn(buttonVariants({ variant, size }), className)}>
+    <Link href={href} className={cn(buttonVariants({ variant, size }), className)} aria-label={ariaLabel}>
       {children}
     </Link>
   );
