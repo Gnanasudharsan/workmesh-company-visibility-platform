@@ -63,7 +63,8 @@ Branch `feat/ask-the-mesh`.
 
 | # | Milestone | Verification | Commit |
 | --- | --- | --- | --- |
-| C0 | Recon, design, tool → service map, threat model, phase plan | Baseline (2026-11-12, Node 26.8.2): core 91/91, API 54/54, web 18/18; lint 0 errors; typecheck clean; `make docs-check` 7/7 | (this commit) |
+| C0 | Recon, design, tool → service map, threat model, phase plan | Baseline (2026-11-12, Node 26.8.2): core 91/91, API 54/54, web 18/18; lint 0 errors; typecheck clean; `make docs-check` 7/7 | `0bdaded` |
+| C1 | Permission-safe read-only tool layer: facade bound to the request's AuthContext, 8 tools, per-call `READ ONLY` tenant transactions, citation ledger, DEMO-only tool endpoint, `pnpm copilot:try` via real login | API 84/84 (+6 unit, +24 integration: per-persona parity, Atlas ≡ made-up name, Noah isolation, canaries with positive controls, read-only, gating); mutation check: a fabricated field fails parity for every persona; CLI run live as Maya/Daniel/Priya/Elena/Sam/Noah; logs carry metadata only | (this commit) |
 
 Local environment notes (no repo changes):
 - Node 25+ ships a built-in `localStorage` that shadows jsdom's and breaks zustand `persist` in web tests;

@@ -24,6 +24,9 @@ const schema = z.object({
   DEMO_MODE: bool,
   LOG_LEVEL: z.string().default("info"),
   RATE_LIMIT_PER_MINUTE: z.coerce.number().int().default(600),
+  /** Ask the Mesh copilot (docs/COPILOT.md). Off by default; every copilot endpoint is 404 when off. */
+  COPILOT_ENABLED: bool,
+  COPILOT_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(10),
 });
 
 export type AppConfig = z.infer<typeof schema>;

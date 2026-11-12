@@ -1,7 +1,7 @@
 # Ask the Mesh — permission-safe copilot
 
-> Status: **design (Phase 0)**. Nothing below is implemented yet; each phase updates this file and
-> [PROGRESS.md](../PROGRESS.md) as it lands.
+> Status: **Phase 1 — permission-safe tool layer implemented** (no model yet). Each phase updates
+> this file and [PROGRESS.md](../PROGRESS.md) as it lands.
 
 Ask the Mesh answers natural-language questions about the company ("What's blocking Checkout Launch?",
 "What is Maya working on?") from WorkMesh records, with a citation for every claim. It is an **optional
@@ -51,14 +51,14 @@ Module layout (`apps/api/src/modules/copilot/`):
 
 | File | Responsibility |
 | --- | --- |
-| `facade.ts` | `CopilotReadFacade`: injects existing services and re-exports only their read methods. Type-level and runtime: no write method is reachable. |
-| `tools/*.ts` | One file per tool: Zod input schema, description, `run(facade, ctx, input)` → minimal fields. Every record carries `type` and `id`. |
-| `tool-runner.ts` | Validates input with Zod, runs the tool in its own read-only tenant transaction with the request's `AuthContext`/`ViewerScope`, maps 404s to "not found" results, records returned records in the request's citation ledger. |
+| `facade.ts` | `CopilotReadFacade.forRequest(ctx)` → a frozen object of 10 read methods with the request's `AuthContext` already bound. Tools never get a service instance, `Db`, a Prisma client or the execution context (enforced by a unit test over the tool sources). |
+| `tools/*.ts` | Zod input schema (strict: unknown keys rejected), description, `run(api, input)` → minimal fields. Every record carries `type`, `id` and, when citable, `title`. |
+| `tool-runner.ts` | Validates input with Zod, runs the tool in its own `READ ONLY` tenant transaction with the request's `AuthContext`/`ViewerScope`, maps 404s to `{ found: false }`, adds returned records to the request's `CitationLedger`, logs metadata only. |
 | `providers/*.ts` | `CopilotProvider` interface + `fake` (scripted, tests only, refused in production), `ollama` (local default), `anthropic` (optional). HTTP via `fetch`; no SDKs, no LangChain. |
 | `agent.ts` | Tool-calling loop, bounded by `COPILOT_MAX_TOOL_CALLS` and `COPILOT_TIMEOUT_MS`. |
 | `prompt.ts` | System prompt built from the invariants above. |
 | `citations.ts` | Parses citation tokens, validates them against the ledger, renumbers to `[n]`, builds `href`s server-side. |
-| `copilot.controller.ts` | `POST /api/copilot/ask`; DEMO-only `POST /api/copilot/dev/tools/:name`. |
+| `copilot.controller.ts` | DEMO-only `GET /api/copilot/dev/tools` and `POST /api/copilot/dev/tools/:name` (Phase 1); `POST /api/copilot/ask` (Phase 2). |
 
 ### Transaction boundary
 
@@ -72,17 +72,20 @@ the model is thinking.
 
 ## Tools
 
-All tools are read-only. They resolve names through the existing full-text search (`SearchService`) and
-return compact JSON. They never return access levels, visibility classes or `canEdit` flags.
+All tools are read-only. Project and person inputs accept a **name, key or id** ("Checkout Launch",
+"CHK", a UUID, or "me" for people), resolved through the existing full-text search (`SearchService`),
+which only returns what the viewer may see. Results are compact JSON with employee-written text
+truncated. They never return access levels, visibility classes, `canEdit`/`canSeeWork` flags or
+counts the viewer couldn't list themselves.
 
 | Tool | Answers | Input (Zod) | Existing service calls |
 | --- | --- | --- | --- |
 | `search_records` | Resolve a name or topic to records | `{ query: string(1..100), types?: SearchType[] }` | `SearchService.search(ctx, q, types)` |
-| `get_project` | Status, health and reasons, lead, team, initiative, milestones | `{ projectId: uuid }` | `ProjectsService.get(ctx, id)` |
-| `project_blockers` | "What's blocking project X?" | `{ projectId: uuid }` | `ProjectsService.get` → `BlockersService.list(ctx, { projectId, open: true })` + blocked upstream edges from `DependenciesService.explorer(ctx, id)` |
-| `project_dependencies` | "Which cross-team dependencies could delay X?" | `{ projectId: uuid }` | `DependenciesService.explorer(ctx, id)`: confirmed vs potential impact, owning teams, `slackDays` evidence |
-| `project_changes` | "What changed on X this week?" | `{ projectId: uuid, sinceDays?: 1..30 = 7 }` | `ProjectsService.get` → `ProjectsService.activity(id)` (details only), `UpdatesService.list(ctx, { projectId, since })`, `BlockersService.list(ctx, { projectId })` filtered by date |
-| `person_work` | "What is <person> working on?" | `{ personId: uuid }` | `DirectoryService.person(ctx, id)`: projects, assignments (only when `canViewMemberWork`), recent published updates |
+| `get_project` | Status, health and reasons, lead, team, initiative, milestones, members | `{ project: name \| key \| id }` | `ProjectsService.get(ctx, id)` |
+| `project_blockers` | "What's blocking project X?" | `{ project }` | `ProjectsService.get` → `BlockersService.list(ctx, { projectId, open: true })` + unresolved upstream edges from `DependenciesService.explorer(ctx, id)` |
+| `project_dependencies` | "Which cross-team dependencies could delay X?" | `{ project }` | `DependenciesService.explorer(ctx, id)`: edges with direction, `crossTeam`, state, `slackDays` evidence; confirmed vs potential impact |
+| `project_changes` | "What changed on X this week?" | `{ project, sinceDays?: 1..30 = 7 }` | `ProjectsService.get` → `ProjectsService.activity(id)` (details only), `UpdatesService.list(ctx, { projectId, since })`, `BlockersService.list(ctx, { projectId })` filtered by date |
+| `person_work` | "What is <person> working on?" | `{ person: name \| id \| "me" }` | `DirectoryService.person(ctx, id)`: projects, assignments (the service returns them only when `canViewMemberWork`), recent published updates |
 | `find_helpers` | "Who owns or can help with <topic>?" | `{ topic: string(1..100) }` | `SearchService.search(ctx, topic, ["people","teams","projects"])` → `DirectoryService.team(ctx, id)` for leads and contacts |
 | `goals_at_risk` | "Which goals are at risk and why?" | `{}` | `GoalsService.tree(ctx)`: aggregates computed over visible projects only, with each project's `healthReasons` |
 
@@ -93,6 +96,44 @@ Notes:
 - Drafts are excluded. Only `PUBLISHED` updates are passed to the model.
 - A project the viewer sees only at *summary* level returns only the presenter's summary fields, and
   `project_changes` returns no change events for it, because `activity()` requires details.
+
+## Trying the tools (Phase 1)
+
+With the API running (`make dev`) and `COPILOT_ENABLED=true` + `DEMO_MODE=true` in `.env`:
+
+```bash
+pnpm copilot:try --list
+```
+
+```bash
+pnpm copilot:try --as maya --tool project_blockers --input '{"project":"Checkout Launch"}'
+```
+
+The CLI signs in through the real `POST /api/auth/login` (session + CSRF cookies, password from
+`.demo-credentials.json`) as `maya`, `daniel`, `priya`, `elena`, `sam` or `noah`, then calls the
+DEMO-only tool endpoint, which runs the same `ToolRunner` as the agent loop. It prints the raw tool
+result and the records it added to the citation ledger.
+
+## Tests (Phase 1)
+
+- `src/modules/copilot/facade.spec.ts` (unit, 6): the facade exposes exactly the pinned read methods, frozen,
+  with the `AuthContext` bound; drafts can't be requested; tool sources can't import `Db`, Prisma, the
+  execution context or authz internals; every schema is strict; the ledger walker.
+- `test/copilot-tools.int.spec.ts` (integration, 24), through real login and the HTTP endpoint:
+  - **Parity** — for each of the six personas, 48 tool calls across every visibility class: every
+    returned record is readable by that persona at its canonical existing endpoint, and every id and
+    string value in the tool output appears in what the existing API returns to them. Goal aggregates
+    equal `/api/goals` exactly.
+  - **Existence** — for Maya, Daniel, Priya, Sam and Noah, Project Atlas (by id, name and key), its
+    initiative, the restricted goal and Atlas-only terms give byte-identical output to made-up names.
+  - **Canaries** — strings planted in Atlas (description, milestone, ORG-visible update and blocker,
+    dependency edge into Checkout, change event), the restricted goal, Enterprise Pricing (Sales-only),
+    Hiring Plan (members-only) and Maya's private draft never reach unauthorized personas; positive
+    controls prove Elena, Rachel and Sam do receive the ones they're entitled to.
+  - **Isolation** — Noah gets `{ found: false }` for every Northstar id and no Northstar id or name anywhere.
+  - **Read-only** — a write inside a tool transaction is rejected by Postgres.
+  - **Gating** — 404 unless `COPILOT_ENABLED` and `DEMO_MODE`; 401 without a session; 403 without CSRF;
+    400 on invalid or extra input; 404 for unknown tools.
 
 ## Request flow (`POST /api/copilot/ask`)
 

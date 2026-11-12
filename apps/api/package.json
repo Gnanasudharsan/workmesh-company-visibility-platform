@@ -14,7 +14,8 @@
     "test:int": "jest --runInBand --selectProjects integration",
     "seed": "ts-node --transpile-only prisma/seed.ts",
     "db:migrate": "prisma migrate deploy",
-    "loadtest": "ts-node --transpile-only scripts/loadtest.ts"
+    "loadtest": "ts-node --transpile-only scripts/loadtest.ts",
+    "copilot:try": "ts-node --transpile-only scripts/copilot-try.ts"
   },
   "dependencies": {
     "@nestjs/common": "11.2.8",
