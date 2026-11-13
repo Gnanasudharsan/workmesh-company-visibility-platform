@@ -54,6 +54,7 @@ lib/store.ts            UI-only state (workspace, sidebar, palette, recents, get
 | Company Map | Navy canvas, glass nodes, state-colored edges, camera focus on selection, white inspector, list alternative |
 | Dependencies | Navy canvas with metric strip; **Impact mode** dims everything except confirmed problems and what they can reach |
 | Notifications | Grouped by day, type icons, unread shown by weight + tint + labelled dot |
+| Ask the Mesh (optional) | Navy composer, suggested questions per workspace, answer cards with teal citation markers and source chips; hidden unless the server reports the copilot is on ([COPILOT.md](COPILOT.md)) |
 | All other pages | Re-themed through tokens: cards, stats, headers, tabs (animated underline), segmented controls (sliding pill), skeletons, empty states |
 
 ## Data visualisation rules

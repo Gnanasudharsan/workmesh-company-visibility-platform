@@ -3,9 +3,14 @@
 | Layer | Location | Tool | Tests |
 | --- | --- | --- | ---: |
 | Domain core | `packages/core/src/*.test.ts` | Vitest | 91 |
-| API integration (real Postgres + Redis) | `apps/api/test/*.int.spec.ts` | Jest, Supertest, socket.io-client | 54 |
-| Web components & client | `apps/web/src/**/*.test.tsx` | Vitest, Testing Library, jsdom | 16 |
-| End-to-end journeys + responsive/a11y checks | `apps/web/e2e/*.spec.ts` | Playwright (Chromium) | 9 |
+| API integration (real Postgres + Redis) | `apps/api/test/*.int.spec.ts` | Jest, Supertest, socket.io-client | 94 |
+| API unit (Ask the Mesh) | `apps/api/src/**/*.spec.ts` | Jest | 45 |
+| Web components & client | `apps/web/src/**/*.test.ts(x)` | Vitest, Testing Library, jsdom | 34 |
+| End-to-end journeys + responsive/a11y checks | `apps/web/e2e/*.spec.ts` | Playwright (Chromium) | 15 |
+
+Ask the Mesh tests never call a model: they use the scripted fake provider. The live, model-graded eval
+(`pnpm --filter @workmesh/api eval:copilot`, results in [COPILOT_EVALS.md](COPILOT_EVALS.md)) runs locally only;
+its scoring functions are unit-tested in CI. See [COPILOT.md](COPILOT.md) for what each copilot suite proves.
 
 ## Running
 
@@ -14,8 +19,12 @@ make test        # core + API integration + web unit tests (starts Postgres/Redi
 ```
 
 ```bash
-make e2e         # reseeds demo data, starts API + web if not running, runs journeys A–G
+make e2e         # reseeds demo data, starts API + web if not running, runs journeys A–H
 ```
+
+Playwright starts the API with `COPILOT_ENABLED=true COPILOT_PROVIDER=fake` (journeys never call a model) and
+`AUTH_RATE_LIMIT_PER_MINUTE=200`, because the suite signs in more than 20 times a minute (the integration
+suites raise the same limit). If you reuse an API you started yourself, start it with those three variables.
 
 ```bash
 pnpm --filter @workmesh/api loadtest   # latency measurement against a running API

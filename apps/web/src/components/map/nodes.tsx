@@ -25,6 +25,8 @@ function Shell({ data, children, accent, className }: { data: MapNodeData; child
   const vertical = data.direction !== "right";
   return (
     <div
+      data-highlighted={data.highlighted || undefined}
+      data-dimmed={data.dimmed || undefined}
       className={cn(
         "group relative h-full w-full rounded-[14px] border bg-navy-900/95 text-navy-text shadow-[0_8px_24px_-12px_rgba(0,0,0,0.6)] backdrop-blur transition-all duration-200",
         data.selected ? "border-teal shadow-glow ring-[3px] ring-teal/25" : data.highlighted ? "border-teal/60 bg-navy-800" : "border-white/[0.09] hover:border-white/25 hover:bg-navy-800",

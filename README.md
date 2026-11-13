@@ -33,7 +33,7 @@ WorkMesh models the company as two connected structures — **Company → Depart
 - What does a manager need to know before a meeting?
 - **And for every one of those: what is *this* user legitimately allowed to see?**
 
-Principles: visibility without surveillance; transparency without confidentiality leaks; progress measured by outcomes; permissions enforced on the server. WorkMesh has **no** activity tracking, keystroke/screen/webcam monitoring, online-time metrics or productivity scores. It does not use an LLM.
+Principles: visibility without surveillance; transparency without confidentiality leaks; progress measured by outcomes; permissions enforced on the server. WorkMesh has **no** activity tracking, keystroke/screen/webcam monitoring, online-time metrics or productivity scores. The core is deterministic: permissions, health, dependency impact and meeting briefs never use an LLM. **Ask the Mesh** is an optional AI layer on top, off by default, that answers only from records the user can already see.
 
 ## Midnight Edition
 
@@ -69,6 +69,7 @@ vs [`midnight-edition/`](docs/screenshots/midnight-edition/).
 | **Directory & discovery** | People, teams searchable by responsibility, departments, team missions and points of contact. |
 | **Notifications & realtime** | Transactional outbox → BullMQ → notifications re-authorized per recipient, deduplicated; Socket.IO pings to per-member rooms only; clients refetch through the authorized API. |
 | **Search** | PostgreSQL full-text search with authorization applied in SQL, ⌘K palette. |
+| **Ask the Mesh** *(optional AI, off by default)* | Plain-language questions ("What's blocking Checkout Launch?") answered from WorkMesh records with a cited source for every claim, and *Show on map*. The copilot sees exactly what the signed-in user sees: read-only tools over the existing authorized services, server-validated citations, and the same answer for restricted and missing records. Local model by default (Ollama). |
 | **Administration** | Members & roles, invitations, teams & departments, reporting-line editor with history, delegations, a permission inspector that explains real policy decisions, audit log. |
 
 ## Employee workspace
@@ -104,6 +105,38 @@ Goal progress, portfolio and department health, delivery risks *with the reasons
 ## Meeting Briefs
 
 ![Meeting brief](docs/screenshots/midnight-edition/14-meeting-brief.png)
+
+## Ask the Mesh — optional AI copilot
+
+![Ask the Mesh](docs/screenshots/midnight-edition/25-ask-the-mesh.png)
+
+Ask about projects, people, blockers, dependencies and goals in plain words. Every answer comes from WorkMesh
+records and cites them; *Show on map* opens the Company Map focused on the cited records.
+
+![Show on map](docs/screenshots/midnight-edition/26-ask-the-mesh-on-map.png)
+
+> Screenshots use the scripted demo provider (`COPILOT_PROVIDER=fake`), so the answer wording is canned; the
+> citations, links and map focus are the real server-side ones.
+
+- **Sees exactly what you see.** Eight read-only tools call the existing service layer with your `AuthContext`,
+  in read-only RLS transactions. There is no second data store and no policy change.
+- **No existence leaks.** A restricted record looks exactly like one that doesn't exist. The copilot never mentions
+  permissions, and counts cover only what you can see.
+- **Cited or nothing.** Citations are validated on the server against what your tools returned in this request.
+  With none left, the answer is *"I couldn't find anything about that in WorkMesh."*
+- **Injection-aware.** Employee-written text reaches the model as escaped, untrusted data. Tools can't write.
+- **WorkMesh principles.** It describes work and won't rank people or predict deadlines. Question and answer text is
+  never logged.
+
+Enable it with `COPILOT_ENABLED=true` and a provider: `ollama` (local, default model `qwen2.5:7b-instruct`) or
+`anthropic` (optional; sends your authorized tool results to Anthropic). Try it from the terminal:
+
+```bash
+pnpm copilot:try --as daniel --ask "What's blocking Checkout Launch?"
+```
+
+Design and threat model: [docs/COPILOT.md](docs/COPILOT.md) · leak-proof eval results:
+[docs/COPILOT_EVALS.md](docs/COPILOT_EVALS.md) (`pnpm --filter @workmesh/api eval:copilot`).
 
 ## Role-based permissions
 
@@ -142,7 +175,7 @@ flowchart LR
   WK -- publish --> RD --> RG
 ```
 
-Details: [ARCHITECTURE](docs/ARCHITECTURE.md) · [DATABASE](docs/DATABASE.md) · [AUTHORIZATION](docs/AUTHORIZATION.md) · [TENANCY](docs/TENANCY.md) · [EVENTS](docs/EVENTS.md) · [ORGANIZATION_GRAPH](docs/ORGANIZATION_GRAPH.md) · [ROADMAPS](docs/ROADMAPS.md) · [PROGRESS_UPDATES](docs/PROGRESS_UPDATES.md) · [MEETINGS](docs/MEETINGS.md) · [SECURITY](docs/SECURITY.md) · [TESTING](docs/TESTING.md) · [DECISIONS](docs/DECISIONS.md) · [DEPLOYMENT](docs/DEPLOYMENT.md) · [DEMO](docs/DEMO.md)
+Details: [ARCHITECTURE](docs/ARCHITECTURE.md) · [COPILOT](docs/COPILOT.md) · [DATABASE](docs/DATABASE.md) · [AUTHORIZATION](docs/AUTHORIZATION.md) · [TENANCY](docs/TENANCY.md) · [EVENTS](docs/EVENTS.md) · [ORGANIZATION_GRAPH](docs/ORGANIZATION_GRAPH.md) · [ROADMAPS](docs/ROADMAPS.md) · [PROGRESS_UPDATES](docs/PROGRESS_UPDATES.md) · [MEETINGS](docs/MEETINGS.md) · [SECURITY](docs/SECURITY.md) · [TESTING](docs/TESTING.md) · [DECISIONS](docs/DECISIONS.md) · [DEPLOYMENT](docs/DEPLOYMENT.md) · [DEMO](docs/DEMO.md)
 
 ## Technology stack
 
@@ -179,12 +212,13 @@ Sign in at http://localhost:3002/login. With `DEMO_MODE=true` (local only — th
 
 ## Tests
 
-| Suite | Tool | Count | Result (local, 2026-11-09) |
+| Suite | Tool | Count | Result (local, 2026-11-12) |
 | --- | --- | ---: | --- |
 | Domain core: policy matrix, hierarchy & DAG algorithms, state machines, health, briefs, dedupe | Vitest | 91 | ✅ 91 passed |
-| API integration on real Postgres + Redis: tenancy & RLS (10), authorization matrix (27), workflows/journeys (14), realtime sockets (3) | Jest + Supertest + socket.io-client | 54 | ✅ 54 passed |
-| Web components & client | Vitest + Testing Library | 16 | ✅ 16 passed |
-| Critical journeys A–G + responsive (no overflow on 10 pages at 1920/1440/1280/768/390 px) and keyboard/mobile-nav checks | Playwright | 9 | ✅ 9 passed |
+| API integration on real Postgres + Redis: tenancy & RLS (10), authorization matrix (27), workflows/journeys (14), realtime sockets (3), Ask the Mesh tool layer (24: per-persona parity, restricted ≡ missing, isolation, canaries, read-only), ask endpoint (15) and rate limit (1) — all on a scripted fake model | Jest + Supertest + socket.io-client | 94 | ✅ 94 passed |
+| API unit: Ask the Mesh facade, citations, handles and map targets, citation retry, providers (mocked HTTP), eval scoring | Jest | 45 | ✅ 45 passed |
+| Web components & client, incl. Ask the Mesh page and map links | Vitest + Testing Library | 34 | ✅ 34 passed |
+| Critical journeys A–H (H: Ask the Mesh, ⌘K, Show on map, restricted ≡ missing) + responsive (no overflow on 13 pages at 1920–390 px) and keyboard/mobile-nav checks | Playwright | 15 | ✅ 15 passed |
 
 Measured API latency (300 requests/endpoint, concurrency 10, seeded Northstar data of 51 people / 12 projects / 98 work items; MacBook Apple Silicon 10-core 16 GB, API in dev mode with pretty logging, Postgres & Redis in Docker):
 
@@ -220,6 +254,13 @@ Opaque 256-bit session tokens in HTTP-only `SameSite=Lax` cookies (only SHA-256 
 - Mentions (`@name`) aren't parsed; "help needed from" is the explicit mention mechanism.
 - The API image keeps full dependencies (≈ 900 MB) so migrations can run from it; a slimmer runtime image is future work.
 - Not deployed publicly — runs locally and in CI only.
+- Ask the Mesh is single-turn (no conversation memory) with no answer caching. Answer quality depends on the model.
+  With the default local `qwen2.5:7b-instruct`, the [eval](docs/COPILOT_EVALS.md) shows 0 leaks, 42/42 existence
+  probes, 5/5 injection and 6/6 principle checks. Fact recall is 0.74, it misses the "goals at risk" question,
+  and in 1 of 5 cases it predicted a deadline ("unlikely to ship on time"). The "no deadline predictions" rule is
+  enforced by the prompt only; what the model can see and which citations survive are enforced in code. On a 16 GB
+  machine the local model needs other memory-heavy apps closed. The copilot's rate limit is per API process, and
+  timing side channels are accepted as for the rest of the API.
 
 ## Future roadmap
 
@@ -232,3 +273,5 @@ Opaque 256-bit session tokens in HTTP-only `SameSite=Lax` cookies (only SHA-256 
 ---
 
 Built by [Sreevarshann](https://github.com/Sreevarshann). Synthetic demo data only — no real company or person is depicted.
+
+Ask the Mesh by Gnanasudharsan Ashokumar, built on WorkMesh by Sreevarshann.

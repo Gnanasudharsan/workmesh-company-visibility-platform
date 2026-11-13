@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { login, USERS } from "./helpers";
 
 const WIDTHS = [1920, 1440, 1280, 1024, 768, 390];
-const PAGES = ["/home", "/team-pulse", "/map", "/roadmap", "/projects", "/directory", "/meetings", "/blockers", "/leadership", "/admin", "/dependencies?mode=impact", "/notifications"];
+const PAGES = ["/home", "/team-pulse", "/map", "/roadmap", "/projects", "/directory", "/meetings", "/blockers", "/leadership", "/admin", "/dependencies?mode=impact", "/notifications", "/ask"];
 
 test("no horizontal overflow on key pages at every target width", async ({ page }) => {
   test.setTimeout(300_000);

@@ -15,6 +15,7 @@ coverage/
 *.key
 
 # test output
+apps/api/.eval/
 playwright-report/
 test-results/
 apps/web/e2e/.auth/

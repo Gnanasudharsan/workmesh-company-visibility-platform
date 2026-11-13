@@ -18,3 +18,4 @@ Real Playwright captures of the running application (`make screenshots`). All da
 | ![Directory](screenshots/midnight-edition/18-directory.png) Directory | ![Meetings](screenshots/midnight-edition/19-meetings.png) Meetings |
 | ![Admin overview](screenshots/midnight-edition/20-admin-overview.png) Administration | ![Tablet Team Pulse](screenshots/midnight-edition/21-tablet-team-pulse.png) Tablet (768 px) |
 | ![Mobile home](screenshots/midnight-edition/17-mobile-dashboard.png) Mobile home (390 px) | ![Mobile navigation](screenshots/midnight-edition/22-mobile-navigation.png) Mobile navigation |
+| ![Ask the Mesh](screenshots/midnight-edition/25-ask-the-mesh.png) Ask the Mesh (scripted demo provider) | ![Show on map](screenshots/midnight-edition/26-ask-the-mesh-on-map.png) Ask the Mesh — Show on map |

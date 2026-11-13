@@ -24,6 +24,21 @@ const schema = z.object({
   DEMO_MODE: bool,
   LOG_LEVEL: z.string().default("info"),
   RATE_LIMIT_PER_MINUTE: z.coerce.number().int().default(600),
+  /** Ask the Mesh copilot (docs/COPILOT.md). Off by default; every copilot endpoint is 404 when off. */
+  COPILOT_ENABLED: bool,
+  COPILOT_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(10),
+  /** ollama (local, default) · anthropic (hosted, optional) · fake (scripted; tests and demos only). */
+  COPILOT_PROVIDER: z.enum(["ollama", "anthropic", "fake"]).default("ollama"),
+  /** Model name for the provider; defaults per provider (see copilot/providers). */
+  COPILOT_MODEL: z.string().trim().optional(),
+  OLLAMA_URL: z.string().default("http://localhost:11434"),
+  /** Ollama context window. Its default is too small for the system prompt plus tool results. */
+  OLLAMA_NUM_CTX: z.coerce.number().int().min(2048).max(131072).default(16384),
+  ANTHROPIC_API_KEY: z.string().optional(),
+  /** Tool calls allowed per question. */
+  COPILOT_MAX_TOOL_CALLS: z.coerce.number().int().min(1).max(20).default(6),
+  /** Whole-question budget, model calls and tools included. */
+  COPILOT_TIMEOUT_MS: z.coerce.number().int().min(100).max(300_000).default(45_000),
 });
 
 export type AppConfig = z.infer<typeof schema>;
@@ -43,6 +58,7 @@ export function config(): AppConfig {
     if (!cfg.COOKIE_SECURE) throw new Error("COOKIE_SECURE must be true in production");
     if (!cfg.METRICS_TOKEN || cfg.METRICS_TOKEN.startsWith("change-me"))
       throw new Error("Set a strong METRICS_TOKEN in production");
+    if (cfg.COPILOT_PROVIDER === "fake") throw new Error("COPILOT_PROVIDER=fake must not be used in production");
   }
   cached = cfg;
   return cfg;

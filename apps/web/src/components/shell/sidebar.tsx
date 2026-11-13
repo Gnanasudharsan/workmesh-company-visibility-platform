@@ -3,13 +3,14 @@
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import type { Workspace } from "@workmesh/core";
 import {
-  Activity, Bell, BookUser, CalendarClock, ChevronsLeft, ChevronsRight, Compass, Crown, FolderKanban, Gavel, GitBranch, Home, ListChecks, Map, OctagonAlert, Search, Settings, Shield, ShieldCheck, Target, Users,
+  Activity, Bell, BookUser, CalendarClock, ChevronsLeft, ChevronsRight, Compass, Crown, FolderKanban, Gavel, GitBranch, Home, ListChecks, Map, OctagonAlert, Search, Settings, Shield, ShieldCheck, Sparkles, Target, Users,
 } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 import { useApi, useMe } from "@/lib/hooks";
+import type { CopilotStatus } from "@/lib/types";
 import { SPRING } from "@/lib/motion";
 import { useUi } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -35,6 +36,8 @@ const i = (C: typeof Home) => <C className="h-[17px] w-[17px]" strokeWidth={1.85
 export function useNav() {
   const { data: me } = useMe();
   const { data: notif } = useApi<{ unreadCount: number }>(me?.active ? "/notifications?unread=true" : null, { refetchInterval: 60_000 });
+  // Ask the Mesh is optional and off by default; the status endpoint 404s when it's off.
+  const { data: copilot } = useApi<CopilotStatus>(me?.active ? "/copilot/status" : null, { retry: false, staleTime: 300_000 });
   const ws = new Set(me?.active?.workspaces ?? []);
   const sections: Array<{ title: string; items: NavItem[] }> = [
     {
@@ -50,6 +53,7 @@ export function useNav() {
     {
       title: "Explore",
       items: [
+        ...(copilot?.enabled ? [{ href: "/ask", label: "Ask the Mesh", icon: i(Sparkles) }] : []),
         { href: "/map", label: "Company Map", icon: i(Map) },
         { href: "/directory", label: "Directory", icon: i(BookUser), match: ["/people", "/departments"] },
         { href: "/directory?tab=teams", label: "Teams", icon: i(Users), match: ["/teams"] },

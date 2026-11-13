@@ -7,6 +7,19 @@ import { defineConfig, devices } from "@playwright/test";
  */
 const CI = !!process.env.CI;
 
+/**
+ * The API runs with Ask the Mesh on and the scripted fake provider: journeys never call a real
+ * model. The suite signs in more than 20 times a minute, so the login limit is raised here the
+ * way the integration suites raise it (apps/api/test/env.ts); no journey tests that limit.
+ * A reused local API must be started the same way (see docs/TESTING.md).
+ */
+const API_ENV: Record<string, string> = {
+  ...(Object.fromEntries(Object.entries(process.env).filter(([, v]) => v !== undefined)) as Record<string, string>),
+  COPILOT_ENABLED: "true",
+  COPILOT_PROVIDER: "fake",
+  AUTH_RATE_LIMIT_PER_MINUTE: process.env.AUTH_RATE_LIMIT_PER_MINUTE ?? "200",
+};
+
 export default defineConfig({
   testDir: "./e2e",
   testMatch: /.*\.spec\.ts/,
@@ -27,6 +40,7 @@ export default defineConfig({
   webServer: [
     {
       command: "corepack pnpm --filter @workmesh/api start",
+      env: API_ENV,
       url: "http://localhost:8020/api/health",
       reuseExistingServer: !CI,
       timeout: 120_000,

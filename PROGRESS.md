@@ -56,6 +56,27 @@ Only verified work is recorded here. Each milestone lists what was run and the r
 No new API endpoints were needed: every chart is built from the existing permission-filtered
 dashboard payloads (`/dashboard/employee`, `/dashboard/manager`, `/dashboard/leadership`, `/dependencies`).
 
+## Ask the Mesh — permission-safe copilot (fork feature)
+
+Design and threat model: [docs/COPILOT.md](docs/COPILOT.md). Off by default (`COPILOT_ENABLED=false`).
+Branch `feat/ask-the-mesh`.
+
+| # | Milestone | Verification | Commit |
+| --- | --- | --- | --- |
+| C0 | Recon, design, tool → service map, threat model, phase plan | Baseline (2026-11-12, Node 26.8.2): core 91/91, API 54/54, web 18/18; lint 0 errors; typecheck clean; `make docs-check` 7/7 | `0bdaded` |
+| C1 | Permission-safe read-only tool layer: facade bound to the request's AuthContext, 8 tools, per-call `READ ONLY` tenant transactions, citation ledger, DEMO-only tool endpoint, `pnpm copilot:try` via real login | API 84/84 (+6 unit, +24 integration: per-persona parity, Atlas ≡ made-up name, Noah isolation, canaries with positive controls, read-only, gating); mutation check: a fabricated field fails parity for every persona; CLI run live as Maya/Daniel/Priya/Elena/Sam/Noah; logs carry metadata only | `49b1dc5` |
+| C2 | Agent loop and `POST /api/copilot/ask`: provider interface with fake / ollama / anthropic (`@anthropic-ai/sdk` 1.3.0, pinned), rules-based system prompt, untrusted tool-result envelope, server-side citation validation and hrefs, tool budget and timeout, `--ask` CLI | API 110/110 (+13 unit, +13 integration incl. rate limit), all on the fake provider; live: CLI `--ask` as Daniel/Maya/Priya with the fake provider, a clean 503 with Ollama absent; logs carry metadata only | `a9f72a4` |
+| C3 | Ask the Mesh web UI: page, sidebar entry, ⌘K actions, per-workspace suggestions from `GET /api/copilot/status`, citation chips, loading/error/empty/off states, safe Markdown subset, reduced motion, keyboard and screen-reader support | Web 30/30 (+12), API 111/111 (+1), Playwright 12/12 (+3 Journey H; `/ask` in the responsive sweep); found and fixed by tests: citation markers linked to the wrong anchor, and the palette hid "No results you have access to." (Journey G); browser check at 1440 px and 375 px | `ee866f9` |
+| C4 | Show on map: server-side map targets per citation (non-node records → their project or person), `/map?highlight=` reusing highlight/dim and camera focus, People-map auto-expand, banner with per-record focus, other-mode switch and clear; the map still renders only server-authorized nodes | API 126/126 (+15), web 34/34 (+4), Playwright 15/15 (+3: focus, People map, a hand-made Atlas highlight can't add a node); browser check | `29642d8` |
+| C5 | Leak-proof eval suite (`eval:copilot`: 26 questions × 6 personas, facts from each persona's own authorized tools, leak/existence/injection/principle/deadline scoring, `--rescore`), scoring unit tests, shared canary fixtures; live-run fixes: Ollama context and output limits, short citation handles, one citation retry, name lookup without number tokens; README, screenshots, docs | Live run on `qwen2.5:7b-instruct` (Ollama 0.40.16, Apple M4 16 GB): **safe**, 0 leaks, probes 42/42, injection 5/5, principle 6/6, deadline 4/5, recall 0.74, citation precision 1.00, p50 8.7 s / p95 33.9 s ([COPILOT_EVALS.md](docs/COPILOT_EVALS.md)); core 91, API 139 (45 unit + 94 integration), web 34, Playwright 15 | (this commit) |
+
+Local environment notes (no repo changes):
+- Node 25+ ships a built-in `localStorage` that shadows jsdom's and breaks zustand `persist` in web tests;
+  run with `NODE_OPTIONS=--no-experimental-webstorage` (CI uses Node 22 and is unaffected).
+- The Prisma CLI reads `apps/api/.env`, not the root `.env`; export the root `.env` into the shell
+  (`set -a; source .env; set +a`) before `make migrate`/`make seed`. Run `prisma generate` before the first seed.
+- corepack isn't bundled with Node 25+; `make … PNPM="npx --yes corepack pnpm"` works without a global install.
+
 ## Known issues / notes
 
 - Integration suites share one test database and must run serially (`--runInBand`, already the default script).
