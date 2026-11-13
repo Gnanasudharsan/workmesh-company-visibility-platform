@@ -155,6 +155,46 @@ describe("POST /api/copilot/ask", () => {
     expect(content).not.toContain(injected);
   });
 
+  it("asks once more when a draft forgets its citations; the retry is validated like any answer", async () => {
+    let retryPrompt = "";
+    fake.setScript(
+      steps(
+        () => call("get_project", { project: "Checkout Launch" }),
+        () => say("Checkout Launch is at risk."), // forgot to cite
+        (t) => {
+          const last = t.messages.at(-1);
+          retryPrompt = last && last.role === "user" ? last.content : "";
+          // The model view gives each record a short ref; cite it, plus one the tools never issued.
+          const view = lastToolResults(t.messages)[0]!.value as { project: { ref: string } };
+          return say(`Checkout Launch is at risk [[${view.project.ref}]]. Also [[R99]].`);
+        },
+      ),
+    );
+    const res = await ask("daniel", "How is Checkout Launch going?").expect(200);
+    expect(retryPrompt).toMatch(/has no citations/);
+    expect(res.body.answer).toBe("Checkout Launch is at risk [1]. Also.");
+    expect(res.body.citations.map((x: { id: string }) => x.id)).toEqual([P().CHK]);
+
+    // A draft that says nothing was found is never pushed to cite something.
+    let calls = 0;
+    fake.setScript(
+      steps(
+        () => call("search_records", { query: "checkout" }),
+        () => {
+          calls++;
+          return say("I couldn't find anything about Project Zephyr.");
+        },
+        () => {
+          calls++;
+          return say("unexpected retry");
+        },
+      ),
+    );
+    const nf = await ask("maya", "Tell me about Project Zephyr").expect(200);
+    expect(calls).toBe(1);
+    expect(nf.body.answer).toBe(STANDARD_ANSWER);
+  });
+
   it("feeds invalid tool input back to the model as an error instead of failing the request", async () => {
     let errorSeen = "";
     fake.setScript(
@@ -244,7 +284,7 @@ describe("POST /api/copilot/ask", () => {
       expect(logged).not.toContain("Checkout Launch");
       const event = spies[0]!.mock.calls.map((args) => args[0] as Record<string, unknown>).find((a) => a?.event === "copilot.ask");
       expect(event).toMatchObject({ memberId: seed.northstar.people.maya, model: "fake-scripted", tools: ["get_project"], toolCalls: 1, citations: 1, outcome: "answered" });
-      expect(Object.keys(event!).sort()).toEqual(["citations", "event", "latencyMs", "memberId", "model", "outcome", "stripped", "toolCalls", "tools"]);
+      expect(Object.keys(event!).sort()).toEqual(["citations", "event", "latencyMs", "memberId", "model", "outcome", "retried", "stripped", "toolCalls", "tools"]);
     } finally {
       [...spies, ...statics].forEach((s) => s.mockRestore());
     }

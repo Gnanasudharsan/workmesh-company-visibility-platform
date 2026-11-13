@@ -18,9 +18,9 @@ export class CopilotProviders {
     const cfg = config();
     if (cfg.COPILOT_PROVIDER === "fake") return this.fake;
     const model = cfg.COPILOT_MODEL || DEFAULT_MODELS[cfg.COPILOT_PROVIDER];
-    const key = `${cfg.COPILOT_PROVIDER}|${model}|${cfg.OLLAMA_URL}`;
+    const key = `${cfg.COPILOT_PROVIDER}|${model}|${cfg.OLLAMA_URL}|${cfg.OLLAMA_NUM_CTX}`;
     if (this.cached?.key !== key) {
-      const provider = cfg.COPILOT_PROVIDER === "anthropic" ? new AnthropicProvider(model, { apiKey: cfg.ANTHROPIC_API_KEY }) : new OllamaProvider(cfg.OLLAMA_URL, model);
+      const provider = cfg.COPILOT_PROVIDER === "anthropic" ? new AnthropicProvider(model, { apiKey: cfg.ANTHROPIC_API_KEY }) : new OllamaProvider(cfg.OLLAMA_URL, model, fetch, cfg.OLLAMA_NUM_CTX);
       this.cached = { key, provider };
     }
     return this.cached.provider;

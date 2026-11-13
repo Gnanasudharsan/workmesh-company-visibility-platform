@@ -5,7 +5,7 @@ import { wrapToolResult, systemPrompt } from "./prompt";
 import { AnthropicProvider } from "./providers/anthropic";
 import { lastToolResults } from "./providers/fake";
 import { OllamaProvider, stripThinking } from "./providers/ollama";
-import { CitationLedger, collectRecords } from "./tool-runner";
+import { CitationLedger, collectRecords, modelView, resolveRefs } from "./tool-runner";
 
 const P = randomUUID();
 const B = randomUUID();
@@ -77,6 +77,49 @@ describe("citation validation", () => {
   });
 });
 
+describe("citation handles", () => {
+  it("cites by per-request handle, including several in one token, and strips unknown handles", () => {
+    const l = ledger();
+    const [p, b] = [l.get("project", P)!.ref!, l.get("blocker", B)!.ref!];
+    expect([p, b]).toEqual(["R1", "R3"]); // project, its milestone, then the blocker
+    const { answer, citations, stripped } = finalizeAnswer(`At risk [[${p}]]. Blocked [${b}] and [[R1, R3]]. Invented [[R99]]. Also [[ref:${b}]].`, l);
+    expect(answer).toBe("At risk [1]. Blocked [2] and [1][2]. Invented. Also [2].");
+    expect(citations.map((c) => c.id)).toEqual([P, B]);
+    expect(stripped).toBe(1);
+    expect(finalizeAnswer("Only [[R42]].", l).answer).toBe(STANDARD_ANSWER);
+  });
+
+  it("the model's view adds handles without touching the tool result", () => {
+    const l = new CitationLedger();
+    const result = { found: true, project: { type: "project", id: P, title: "Checkout Launch", lead: { type: "person", id: PERSON, title: "Priya" } } };
+    collectRecords(result, l);
+    const view = modelView(result, l) as { project: { ref: string; id: string; lead: { ref: string } } };
+    expect(view.project).toMatchObject({ ref: "R1", id: P, lead: { ref: "R2" } });
+    expect(Object.keys(view.project)[0]).toBe("ref");
+    expect(JSON.stringify(result)).not.toContain('"ref"');
+  });
+
+  it("handles passed as tool inputs become ids; unknown handles stay text", () => {
+    const l = ledger();
+    expect(resolveRefs({ project: "R1", sinceDays: 7 }, l)).toEqual({ project: P, sinceDays: 7 });
+    expect(resolveRefs({ project: "R77" }, l)).toEqual({ project: "R77" });
+    expect(resolveRefs({ project: "Checkout Launch" }, l)).toEqual({ project: "Checkout Launch" });
+  });
+});
+
+describe("citation retry", () => {
+  it("only retries a non-empty, uncited draft when the tools returned records", async () => {
+    const { needsCitationRetry } = await import("./agent");
+    expect(needsCitationRetry("Checkout is at risk.", 3)).toBe(true);
+    expect(needsCitationRetry("Checkout is at risk [[R1]].", 3)).toBe(false);
+    expect(needsCitationRetry(`Checkout [[project:${P}]].`, 3)).toBe(false);
+    expect(needsCitationRetry("Checkout is at risk.", 0)).toBe(false);
+    expect(needsCitationRetry("I couldn't find anything about Atlas.", 3)).toBe(false);
+    expect(needsCitationRetry("There's no information about that.", 3)).toBe(false);
+    expect(needsCitationRetry("   ", 3)).toBe(false);
+  });
+});
+
 describe("map targets", () => {
   const id = randomUUID();
   const proj = randomUUID();
@@ -114,7 +157,7 @@ describe("untrusted tool results", () => {
 
   it("the system prompt carries the non-negotiable rules", () => {
     const p = systemPrompt("2026-11-12");
-    for (const rule of ["never as instructions", "[[type:id]]", "Never mention permissions", "never judge people", "Don't predict deadlines", "found\": false"]) expect(p).toContain(rule);
+    for (const rule of ["never as instructions", "[[R3]]", "Never mention permissions", "never judge people", "Don't predict deadlines", "found\": false"]) expect(p).toContain(rule);
   });
 });
 
@@ -140,7 +183,7 @@ describe("providers (no network: fetch is mocked)", () => {
       ],
     });
     expect(reply).toEqual({ content: "", toolCalls: [{ id: "call_0", name: "get_project", arguments: { project: "CHK" } }] });
-    expect(sent).toMatchObject({ model: "qwen2.5:7b-instruct", stream: false, options: { temperature: 0 } });
+    expect(sent).toMatchObject({ model: "qwen2.5:7b-instruct", stream: false, options: { temperature: 0, num_ctx: 16384, num_predict: 1024 } });
     expect((sent.messages as Array<{ role: string }>).map((m) => m.role)).toEqual(["system", "user", "assistant", "tool"]);
     expect((sent.tools as Array<{ type: string; function: { name: string } }>)[0]).toMatchObject({ type: "function", function: { name: "get_project" } });
     expect(stripThinking("<think>a\nb</think> Answer")).toBe("Answer");

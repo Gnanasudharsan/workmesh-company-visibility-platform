@@ -32,6 +32,8 @@ const schema = z.object({
   /** Model name for the provider; defaults per provider (see copilot/providers). */
   COPILOT_MODEL: z.string().trim().optional(),
   OLLAMA_URL: z.string().default("http://localhost:11434"),
+  /** Ollama context window. Its default is too small for the system prompt plus tool results. */
+  OLLAMA_NUM_CTX: z.coerce.number().int().min(2048).max(131072).default(16384),
   ANTHROPIC_API_KEY: z.string().optional(),
   /** Tool calls allowed per question. */
   COPILOT_MAX_TOOL_CALLS: z.coerce.number().int().min(1).max(20).default(6),

@@ -46,13 +46,25 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 export const isUuid = (s: string) => UUID_RE.test(s);
 
 /**
+ * Full-text search for a name, retried once without number-like tokens when nothing matches
+ * ("Mobile App 3.0" → "Mobile App"): the search tokenizer splits "3.0" in the query but not in the
+ * index. Still the viewer's own authorized search, so invisible records stay invisible.
+ */
+async function searchName<T>(api: ReadApi, value: string, type: "projects" | "people"): Promise<T[]> {
+  const first = (await api.search(value, [type], 6)).results[type] as T[];
+  if (first.length) return first;
+  const words = value.split(/\s+/).filter((w) => /\p{L}{2,}/u.test(w) && !/\d/.test(w));
+  if (!words.length || words.length === value.trim().split(/\s+/).length) return first;
+  return (await api.search(words.join(" "), [type], 6)).results[type] as T[];
+}
+
+/**
  * Resolves a project by id, key or name using the existing full-text search, which only ever
  * returns projects the viewer may see. Exact name/key matches win; otherwise the best hit.
  */
 export async function resolveProject(api: ReadApi, value: string): Promise<string | null> {
   if (isUuid(value)) return value;
-  const { results } = await api.search(value, ["projects"], 6);
-  const rows = results.projects as Array<{ id: string; name: string; key: string }>;
+  const rows = await searchName<{ id: string; name: string; key: string }>(api, value, "projects");
   const v = value.trim().toLowerCase();
   return (rows.find((p) => p.name.toLowerCase() === v || p.key.toLowerCase() === v) ?? rows[0])?.id ?? null;
 }
@@ -62,8 +74,7 @@ export async function resolvePerson(api: ReadApi, value: string): Promise<string
   if (isUuid(value)) return value;
   const v = value.trim().toLowerCase();
   if (["me", "myself", "i"].includes(v)) return api.self();
-  const { results } = await api.search(value, ["people"], 6);
-  const rows = results.people as Array<{ id: string; name: string }>;
+  const rows = await searchName<{ id: string; name: string }>(api, value, "people");
   return (rows.find((p) => p.name.toLowerCase() === v) ?? rows[0])?.id ?? null;
 }
 

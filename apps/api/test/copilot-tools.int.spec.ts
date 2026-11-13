@@ -7,6 +7,7 @@ import { Db } from "../src/common/db.service";
 import { resetConfigCache } from "../src/config";
 import { AuthzService } from "../src/modules/policy/authz.service";
 import { CopilotToolRunner } from "../src/modules/copilot/tool-runner";
+import { ATLAS_CANARIES, C, FORBIDDEN, plantCanaries } from "./copilot-fixtures";
 import { bootstrap, EMAIL, login, type Client, type Seed } from "./helpers";
 
 /**
@@ -20,30 +21,6 @@ type Persona = (typeof PERSONAS)[number];
 /** Personas with no access to Project Atlas, its initiative or the restricted goal. */
 const NO_ATLAS = ["maya", "daniel", "priya", "sam", "noah"] as const;
 
-/** Canary strings planted in restricted records. Single tokens so full-text search can find them. */
-const C = {
-  atlasDesc: "CANARYATLASDESC",
-  atlasMilestone: "CANARYATLASMILESTONE",
-  atlasUpdate: "CANARYATLASUPDATE",
-  atlasBlocker: "CANARYATLASBLOCKER",
-  atlasDep: "CANARYATLASDEP",
-  atlasChange: "CANARYATLASCHANGE",
-  goal: "CANARYSTRATEGICGOAL",
-  ent: "CANARYENTERPRISE",
-  hir: "CANARYHIRING",
-  draft: "CANARYDRAFT",
-};
-const ATLAS_CANARIES = [C.atlasDesc, C.atlasMilestone, C.atlasUpdate, C.atlasBlocker, C.atlasDep, C.atlasChange, C.goal];
-
-/** Which canaries each persona must never receive. */
-const FORBIDDEN: Record<Persona, string[]> = {
-  maya: [...ATLAS_CANARIES, C.ent, C.hir, C.draft],
-  daniel: [...ATLAS_CANARIES, C.ent, C.hir, C.draft],
-  priya: [...ATLAS_CANARIES, C.ent, C.hir, C.draft],
-  sam: [...ATLAS_CANARIES, C.ent, C.draft], // Sam is a member of Hiring Plan 2027
-  elena: [C.ent, C.draft], // leads Atlas and is on Hiring; Enterprise Pricing is summary-only for her
-  noah: Object.values(C),
-};
 
 const UUID_G = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
 const UUID_1 = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -124,7 +101,7 @@ describe("Ask the Mesh tool layer", () => {
 
   beforeAll(async () => {
     ({ app, seed, prisma } = await bootstrap());
-    await plantCanaries();
+    await plantCanaries(prisma, seed);
     for (const k of [...PERSONAS, "rachel"] as const) c[k] = await login(app, EMAIL[k]);
   });
   afterAll(async () => {
@@ -132,28 +109,6 @@ describe("Ask the Mesh tool layer", () => {
     await prisma.$disconnect();
   });
 
-  async function plantCanaries() {
-    const org = seed.northstar.orgId;
-    const atl = P().ATL!;
-    await prisma.project.update({ where: { id: atl }, data: { description: `Board notes ${C.atlasDesc}` } });
-    await prisma.milestone.update({ where: { id: seed.work.milestones.ATL![0]! }, data: { title: `Initial diligence ${C.atlasMilestone}` } });
-    await prisma.progressUpdate.create({
-      data: { organizationId: org, authorId: N().yuki!, projectId: atl, status: "PUBLISHED", visibility: "ORG", stage: "DEVELOPMENT", currentFocus: `Diligence call ${C.atlasUpdate}`, publishedAt: new Date() },
-    });
-    await prisma.blocker.create({
-      data: { organizationId: org, title: `Data room ${C.atlasBlocker}`, projectId: atl, reporterId: N().yuki!, severity: "HIGH", state: "OPEN", visibility: "ORG" },
-    });
-    await prisma.dependency.create({
-      data: { organizationId: org, upstreamProjectId: atl, downstreamProjectId: P().CHK!, description: `Integration plan ${C.atlasDep}`, state: "BLOCKED", isCritical: true, createdById: N().elena! },
-    });
-    await prisma.changeEvent.create({ data: { organizationId: org, entityType: "PROJECT", entityId: atl, projectId: atl, field: "summary", fromValue: null, toValue: C.atlasChange, actorId: N().elena! } });
-    await prisma.companyGoal.update({ where: { id: seed.work.goals.strategic! }, data: { title: `Strategic expansion options ${C.goal}` } });
-    await prisma.project.update({ where: { id: P().ENT! }, data: { description: `Pricing floor ${C.ent}` } });
-    await prisma.milestone.update({ where: { id: seed.work.milestones.ENT![0]! }, data: { title: `Competitive pricing analysis ${C.ent}` } });
-    await prisma.project.update({ where: { id: P().HIR! }, data: { description: `Headcount ${C.hir}` } });
-    const draft = await prisma.progressUpdate.findFirstOrThrow({ where: { authorId: N().maya!, status: "DRAFT" } });
-    await prisma.progressUpdate.update({ where: { id: draft.id }, data: { currentFocus: `${draft.currentFocus} ${C.draft}` } });
-  }
 
   const tool = async (who: Persona | "rachel", name: string, input: unknown): Promise<ToolBody> => {
     const res = await c[who].post(`/api/copilot/dev/tools/${name}`, input as object);

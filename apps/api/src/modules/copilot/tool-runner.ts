@@ -18,6 +18,8 @@ export interface CopilotAuth {
 export interface LedgerRecord extends RecordRef {
   projectId?: string;
   personId?: string;
+  /** Short per-request handle ("R3") the model cites instead of copying a UUID. */
+  ref?: string;
 }
 
 /**
@@ -27,17 +29,27 @@ export interface LedgerRecord extends RecordRef {
 export class CitationLedger {
   private readonly records = new Map<string, LedgerRecord>();
   private readonly ids = new Map<string, LedgerRecord>();
+  private readonly refs = new Map<string, LedgerRecord>();
 
-  add(r: LedgerRecord) {
+  /** Registers a record and returns its handle. The same record keeps the same handle. */
+  add(r: LedgerRecord): string {
     const key = `${r.type}:${r.id}`;
     const existing = this.records.get(key);
     if (existing) {
       existing.projectId ??= r.projectId;
       existing.personId ??= r.personId;
-      return;
+      return existing.ref!;
     }
-    this.records.set(key, r);
-    if (!this.ids.has(r.id)) this.ids.set(r.id, r);
+    const rec = { ...r, ref: `R${this.records.size + 1}` };
+    this.records.set(key, rec);
+    this.refs.set(rec.ref, rec);
+    if (!this.ids.has(r.id)) this.ids.set(r.id, rec);
+    return rec.ref;
+  }
+
+  /** Lookup by handle ("R3"); only handles issued in this request exist. */
+  byRef(ref: string): LedgerRecord | undefined {
+    return this.refs.get(ref.toUpperCase());
   }
 
   get(type: string, id: string): LedgerRecord | undefined {
@@ -59,6 +71,29 @@ export type ToolRun =
   | { ok: false; tool: string; error: "UNKNOWN_TOOL" | "INVALID_INPUT"; issues?: Array<{ path: string; message: string }> };
 
 const TYPES = new Set<string>(RECORD_TYPES);
+
+/**
+ * The model's view of a tool result: the same data, with each titled record's handle (`ref`)
+ * first, so the model can cite `[[R3]]` instead of copying a UUID. The result itself (returned to
+ * the dev endpoint and used for parity tests) is never changed.
+ */
+export function modelView(value: unknown, ledger: CitationLedger, depth = 0): unknown {
+  if (depth > 8 || value === null || typeof value !== "object") return value;
+  if (Array.isArray(value)) return value.map((v) => modelView(v, ledger, depth + 1));
+  const o = value as Record<string, unknown>;
+  const rec = typeof o.type === "string" && typeof o.id === "string" ? ledger.get(o.type, o.id) : undefined;
+  const out: Record<string, unknown> = rec?.ref ? { ref: rec.ref } : {};
+  for (const [k, v] of Object.entries(o)) out[k] = modelView(v, ledger, depth + 1);
+  return out;
+}
+
+/** Replaces handles the model passes as tool inputs ("R3") with the record's id. Unknown handles stay as text. */
+export function resolveRefs(input: unknown, ledger: CitationLedger): unknown {
+  if (typeof input === "string") return /^R\d{1,4}$/i.test(input.trim()) ? (ledger.byRef(input.trim())?.id ?? input) : input;
+  if (Array.isArray(input)) return input.map((v) => resolveRefs(v, ledger));
+  if (input && typeof input === "object") return Object.fromEntries(Object.entries(input as Record<string, unknown>).map(([k, v]) => [k, resolveRefs(v, ledger)]));
+  return input;
+}
 
 const refId = (v: unknown, type: string): string | undefined => {
   const o = v as { type?: unknown; id?: unknown } | null;
@@ -118,7 +153,7 @@ export class CopilotToolRunner {
   async run(auth: CopilotAuth, name: string, rawInput: unknown, ledger: CitationLedger): Promise<ToolRun> {
     const tool = findTool(name);
     if (!tool) return { ok: false, tool: name, error: "UNKNOWN_TOOL" };
-    const parsed = tool.input.safeParse(rawInput ?? {});
+    const parsed = tool.input.safeParse(resolveRefs(rawInput ?? {}, ledger));
     if (!parsed.success) {
       return { ok: false, tool: name, error: "INVALID_INPUT", issues: parsed.error.issues.map((i) => ({ path: i.path.join("."), message: i.message })) };
     }

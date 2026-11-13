@@ -4,7 +4,7 @@ import { config } from "../../config";
 import { finalizeAnswer, type Citation } from "./citations";
 import { systemPrompt, userPrompt, wrapToolResult } from "./prompt";
 import { CopilotProviders, type ChatMessage, type ToolResult, type ToolSpec } from "./providers";
-import { CitationLedger, CopilotToolRunner, type CopilotAuth } from "./tool-runner";
+import { CitationLedger, CopilotToolRunner, modelView, type CopilotAuth } from "./tool-runner";
 import { TOOLS } from "./tools";
 
 export interface AskResult {
@@ -22,6 +22,22 @@ export const TOOL_SPECS: ToolSpec[] = TOOLS.map((t) => {
 });
 
 class Timeout extends Error {}
+
+/** Any citation token, valid or not: `[[R3]]`, `[R3]`, `[[ref:R3]]`, `[[project:<uuid>]]`. */
+const HAS_CITATION = /\[\[?\s*(?:ref\s*[:#]\s*)?R\d|\[\[?\s*[a-z_]+\s*[:#]\s*[0-9a-f]{8}-/i;
+/** Drafts that already say nothing was found are never pushed to cite something. */
+const SAYS_NOT_FOUND = /\b(couldn'?t|could not|can'?t|cannot|unable to|didn'?t|did not)\s+find\b|\bno (information|records?|results?|data)\b|\bnot found\b/i;
+
+/**
+ * One corrective turn for a draft that forgot its citations. The reply goes through exactly the
+ * same server-side validation, so this can't make an uncited or unreturned record appear.
+ */
+export const CITATION_RETRY =
+  "Your answer has no citations, so it can't be shown. Rewrite the same answer and add the [[R#]] ref of the record each fact came from right after that fact. Use only refs that appear in the tool results above, and don't call any tools. If the tool results don't answer the question, reply exactly: I couldn't find anything about that in WorkMesh.";
+
+export function needsCitationRetry(draft: string, ledgerSize: number): boolean {
+  return ledgerSize > 0 && draft.trim().length > 0 && !HAS_CITATION.test(draft) && !SAYS_NOT_FOUND.test(draft);
+}
 
 /**
  * Single-turn tool-calling loop. The model only ever sees the system prompt, the question and
@@ -60,11 +76,13 @@ export class CopilotAgent {
       const system = systemPrompt(new Date().toISOString().slice(0, 10));
       const messages: ChatMessage[] = [{ role: "user", content: userPrompt(question) }];
       let draft = "";
+      let lastRaw: unknown;
       // Each step is one model call; the extra steps let the model answer after its last tool call.
       for (let step = 0; step < cfg.COPILOT_MAX_TOOL_CALLS + 2; step++) {
         const reply = await Promise.race([provider.chat({ system, messages, tools: TOOL_SPECS, signal: controller.signal }), deadline]);
         if (!reply.toolCalls.length) {
           draft = reply.content;
+          lastRaw = reply.raw;
           break;
         }
         messages.push({ role: "assistant", content: reply.content, toolCalls: reply.toolCalls, raw: reply.raw });
@@ -78,15 +96,23 @@ export class CopilotAgent {
           toolCalls.push({ name: call.name, found: run.ok && (run.result as { found?: boolean }).found !== false });
           results.push(
             run.ok
-              ? { callId: call.id, name: call.name, isError: false, content: wrapToolResult(call.name, run.result) }
+              ? { callId: call.id, name: call.name, isError: false, content: wrapToolResult(call.name, modelView(run.result, ledger)) }
               : { callId: call.id, name: call.name, isError: true, content: wrapToolResult(call.name, { error: run.error, issues: run.issues }) },
           );
         }
         messages.push({ role: "tool", results });
       }
+      let retried = false;
+      if (needsCitationRetry(draft, ledger.all().length)) {
+        retried = true;
+        messages.push({ role: "assistant", content: draft, toolCalls: [], raw: lastRaw });
+        messages.push({ role: "user", content: CITATION_RETRY });
+        const fix = await Promise.race([provider.chat({ system, messages, tools: TOOL_SPECS, signal: controller.signal }), deadline]);
+        if (!fix.toolCalls.length) draft = fix.content;
+      }
       const { answer, citations, stripped } = finalizeAnswer(draft, ledger);
       const latencyMs = Date.now() - started;
-      log(citations.length ? "answered" : "not_found", { citations: citations.length, stripped });
+      log(citations.length ? "answered" : "not_found", { citations: citations.length, stripped, retried });
       return { answer, citations, toolCalls, latencyMs, model: provider.model };
     } catch (err) {
       if (err instanceof Timeout || controller.signal.aborted) {

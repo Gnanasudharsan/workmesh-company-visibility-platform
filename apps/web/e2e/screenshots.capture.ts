@@ -151,3 +151,19 @@ test("mobile dashboard", async ({ browser }) => {
   await shot(page, "17-mobile-dashboard");
   await context.close();
 });
+
+// Ask the Mesh (optional AI layer). Captured with COPILOT_PROVIDER=fake, so the answer text comes from
+// the scripted demo provider; the citations, hrefs and map focus are the real server-side ones.
+test("ask the mesh", async ({ page }) => {
+  await login(page, USERS.daniel);
+  await page.goto("/ask");
+  await page.getByLabel("Ask a question about your company").fill("What's blocking Checkout Launch?");
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("list", { name: "Sources" })).toBeVisible();
+  await shot(page, "25-ask-the-mesh");
+  await page.getByRole("link", { name: /cited records? on the Company Map/ }).click();
+  await expect(page.getByRole("region", { name: "Records from Ask the Mesh" })).toContainText("Showing");
+  await page.evaluate(() => window.scrollTo(0, 0)); // the Ask page's scroll position carries over
+  await page.waitForTimeout(800); // camera glide
+  await shot(page, "26-ask-the-mesh-on-map");
+});

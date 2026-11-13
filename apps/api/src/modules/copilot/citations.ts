@@ -46,6 +46,8 @@ export function mapTarget(r: LedgerRecord): MapTarget | null {
 const UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
 /** [[project:<uuid>]], tolerating single brackets, spaces and `#` (small models drift). */
 const TOKEN = new RegExp(`\\[\\[?\\s*([a-z_]+)\\s*[:#]\\s*(${UUID})\\s*\\]?\\]`, "gi");
+/** [[R3]] — the per-request handle shown next to each record — also [R3], [[ref:R3]], [[R3, R5]]. */
+const REF_TOKEN = /\[\[?\s*(?:ref\s*[:#]\s*)?(R\d{1,4}(?:\s*[,;]\s*R\d{1,4})*)\s*\]?\]/gi;
 const BARE_UUID = new RegExp(UUID, "gi");
 
 /** Web routes for each citable record kind, built on the server — never taken from the model. */
@@ -85,8 +87,7 @@ export function finalizeAnswer(text: string, ledger: CitationLedger): { answer: 
     .replace(/<[^>]*>/g, "") // raw HTML
     .replace(/\[\d+\]/g, ""); // markers the model numbered itself
 
-  out = out.replace(TOKEN, (_m, _type: string, id: string) => {
-    const rec = ledger.byId(id.toLowerCase());
+  const cite = (rec: LedgerRecord | undefined): string => {
     const href = rec ? hrefFor(rec) : null;
     if (!rec || !href) {
       stripped++;
@@ -100,7 +101,9 @@ export function finalizeAnswer(text: string, ledger: CitationLedger): { answer: 
       citations.push({ n, type: rec.type, id: rec.id, title: rec.title, href, map: mapTarget(rec) });
     }
     return `[${n}]`;
-  });
+  };
+  out = out.replace(REF_TOKEN, (_m, refs: string) => refs.split(/\s*[,;]\s*/).map((r) => cite(ledger.byRef(r))).join(""));
+  out = out.replace(TOKEN, (_m, _type: string, id: string) => cite(ledger.byId(id.toLowerCase())));
 
   out = out.replace(BARE_UUID, () => {
     stripped++;

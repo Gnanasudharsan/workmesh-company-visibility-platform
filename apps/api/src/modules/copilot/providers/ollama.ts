@@ -15,13 +15,17 @@ export class OllamaProvider implements CopilotProvider {
     private readonly baseUrl: string,
     readonly model: string,
     private readonly fetchImpl: typeof fetch = fetch,
+    /** Context window; Ollama's default silently truncates long prompts (the rules first). */
+    private readonly numCtx = 16384,
   ) {}
 
   async chat(req: ChatRequest): Promise<ChatReply> {
     const body = {
       model: this.model,
       stream: false,
-      options: { temperature: 0 },
+      // Bounded output: an answer is a few sentences, and a runaway generation must not eat the budget.
+      options: { temperature: 0, num_ctx: this.numCtx, num_predict: 1024 },
+      keep_alive: "10m",
       messages: [{ role: "system", content: req.system }, ...req.messages.flatMap(toOllama)],
       tools: req.tools.map((t) => ({ type: "function", function: { name: t.name, description: t.description, parameters: t.parameters } })),
     };
